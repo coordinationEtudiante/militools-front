@@ -1,0 +1,13 @@
+{
+  "login:title": "Connexion",
+  "login:subtitle": "Accède à ton espace en renseignant tes informations.",
+  "input:phone": "Numéro de téléphone",
+  "input:mail": "Adresse e-mail",
+  "input:password": "Mot de passe",
+  "button:connect": "Se connecter",
+  "button.reconnect": "Se re-connecter",
+  "area-no-joined": "vous n'avez pas rejoint d'organisation",
+  "area-no-joined-subtitle": "Ceci est une erreur. Essayer de vous reconnecter, ou de contacter un administrateur",
+  "hello-user": "Bonjour {username}",
+  "connected-on": "connecter sur {area}"
+}

@@ -1,0 +1,174 @@
+import { fetchError } from '@/errors/fetch.error'
+import { useAreaStore } from '@/stores/area.store'
+import { useServerStore } from '@/stores/server.store'
+import { useUserStore } from '@/stores/user.store'
+import type {
+  CloudFunctionMethod,
+  CloudFunctionQuery,
+  CloudFunctionRequest,
+  CloudFunctionResponse,
+  CloudFunctionRoute,
+} from '@/types/cloud-functions'
+import type { HttpMethod } from '@/types/cloud-functions/FetchDefault.type'
+import { ref } from 'vue'
+
+export function getBaseUrl() {
+  const serverStore = useServerStore()
+  return serverStore.baseUrl || window.location.origin
+}
+
+function getAreaId() {
+  const serverStore = useAreaStore()
+  return serverStore.getArea().id
+}
+
+function getToken() {
+  const { token } = useUserStore()
+  return token
+}
+
+const ROUTE_METHODS = {
+  '/areas/list': 'POST',
+  ':area/contact/getContactFields': 'POST',
+  'auth/login': 'POST',
+  'auth/register': 'POST',
+  getRoute: 'GET',
+} as const satisfies Record<CloudFunctionRoute, HttpMethod>
+
+const DEFAULT_OPTIONS: RequestInit = {
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+  },
+  credentials: 'same-origin',
+}
+
+export async function fetchRequest<T = unknown>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  try {
+    const requestOptions: RequestInit = {
+      ...DEFAULT_OPTIONS,
+      ...options,
+      headers: {
+        ...DEFAULT_OPTIONS.headers,
+        ...(options?.headers || {}),
+      },
+    }
+
+    if (endpoint.includes(':area')) endpoint = endpoint.replace(':area', getAreaId().toString())
+
+    const response = await fetch(new URL(`${endpoint}`, getBaseUrl()), requestOptions)
+
+    if (!response.ok) {
+      throw new fetchError(response.statusText, {
+        status: response.status || 400,
+      })
+    }
+
+    const responseText = await response.text()
+    const data = responseText ? (JSON.parse(responseText).data as T) : undefined
+
+    return data as T
+  } catch (err) {
+    if (err instanceof fetchError) {
+      throw err
+    }
+
+    throw new fetchError(err instanceof Error ? err.message : 'Unexpected request error', {
+      status: 400,
+    })
+  }
+}
+
+type FetchResourceOptions<TRoute extends CloudFunctionRoute> = Omit<
+  RequestInit,
+  'body' | 'method'
+> & {
+  body?: CloudFunctionRequest<TRoute>
+  query?: CloudFunctionQuery<TRoute>
+  method?: CloudFunctionMethod<TRoute>
+  areaId?: number
+  immediate?: boolean
+}
+
+function buildQueryString(query?: Record<string, unknown>): string {
+  if (!query) {
+    return ''
+  }
+
+  const params = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null) {
+      continue
+    }
+
+    params.append(key, value instanceof Date ? value.toISOString() : String(value))
+  }
+
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ''
+}
+
+export async function fetchResource<TRoute extends CloudFunctionRoute>(
+  route: TRoute,
+  options: FetchResourceOptions<TRoute> = {},
+): Promise<CloudFunctionResponse<TRoute>> {
+  const { body, query, method, areaId, headers, ...requestOptions } = options
+  const resolvedMethod = method ?? (body ? 'POST' : ROUTE_METHODS[route])
+  const resolvedRoute = route.includes(':area')
+    ? route.replace(':area', (areaId ?? getAreaId()).toString())
+    : route
+
+  return fetchRequest<CloudFunctionResponse<TRoute>>(`${resolvedRoute}${buildQueryString(query)}`, {
+    ...requestOptions,
+    method: resolvedMethod,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  })
+}
+
+export function reactiveFetch<TRoute extends CloudFunctionRoute>(
+  route: TRoute,
+  options: FetchResourceOptions<TRoute> = {},
+) {
+  const data = ref<CloudFunctionResponse<TRoute>>()
+  const error = ref<fetchError>()
+  const loadingPromise = ref()
+  const isLoading = ref(false)
+  const errorCode = ref<number | undefined>()
+
+  const { body, query, method, areaId, headers, immediate = true, ...requestOptions } = options
+
+  const resolvedMethod = method ?? ROUTE_METHODS[route]
+  const resolvedRoute = route.includes(':area')
+    ? route.replace(':area', (areaId ?? getAreaId()).toString())
+    : route
+  const doFetch = () => {
+    error.value = undefined
+    errorCode.value = undefined
+    isLoading.value = true
+    loadingPromise.value = fetchRequest<CloudFunctionResponse<TRoute>>(
+      `${resolvedRoute}${buildQueryString(query)}`,
+      {
+        ...requestOptions,
+        method: resolvedMethod,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      },
+    )
+      .then((json) => (data.value = json))
+      .catch((err) => {
+        error.value = err instanceof fetchError ? err : new fetchError('Unexpected request error')
+        errorCode.value = error.value.status ?? 400
+      })
+      .finally(() => (isLoading.value = false))
+    return loadingPromise.value
+  }
+  if (immediate) {
+    doFetch()
+  }
+  return { data, error, loadingPromise, isLoading, errorCode, doFetch }
+}

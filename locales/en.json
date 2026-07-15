@@ -1,0 +1,14 @@
+{
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Access your account by entering your information."
+  },
+  "input": {
+    "phone": "Phone number",
+    "mail": "Email address",
+    "password": "Password"
+  },
+  "button": {
+    "connect": "Connect"
+  }
+}
