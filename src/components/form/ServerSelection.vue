@@ -2,7 +2,8 @@
   <div
     class="server-selection flex flex-col gap-1"
     :class="{
-      'p-1 border border-gray-300 rounded-md': serverSelection === t('custom-server') || helperVisible,
+      'rounded-md border border-gray-300 p-1':
+        serverSelection === t('custom-server') || helperVisible,
     }"
   >
     <Message v-if="helperVisible" severity="info">

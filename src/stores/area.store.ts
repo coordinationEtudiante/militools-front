@@ -196,8 +196,8 @@ export const useAreaStore = defineStore('area', () => {
   return {
     loading,
     errored,
+    areas,
     getArea,
-    selectedArea,
     fields,
     getAreaField,
     setSelectedArea,
