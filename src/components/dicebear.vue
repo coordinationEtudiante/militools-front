@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Style, Avatar } from '@dicebear/core'
+import { Style, Avatar, type StyleOptions } from '@dicebear/core'
 import definition from '@dicebear/styles/adventurer.json' with { type: 'json' }
 
-const { seed, size = 128 } = defineProps<{ seed: string; size: number }>()
+const {
+  seed,
+  size = 128,
+  style,
+  option,
+} = defineProps<{ seed: string; size: number; style?: Style; option?: StyleOptions }>()
 
-const style = new Style(definition)
+const avatarStyle = style ?? new Style(definition)
 
 const avatar = computed(() =>
-  new Avatar(style, {
+  new Avatar(avatarStyle, {
     seed: seed,
     size,
+    ...option,
   }).toDataUri(),
 )
 </script>
 
 <template>
-  <img :src="avatar" alt="Avatar" />
+  <img :width="size" :height="size" :src="avatar" alt="Avatar" />
 </template>

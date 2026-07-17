@@ -19,12 +19,15 @@ function redirectToLogin() {
 }
 
 function requireSession(session: StoredSession | null): StoredSession {
-  if (!session || !session.user || !session.token) {
+  if (
+    (!session || !session.user || !session.token) &&
+    router.currentRoute.value.path !== '/auth/login'
+  ) {
     redirectToLogin()
     throw new Error('User session is missing')
   }
 
-  return session
+  return session ?? ({} as StoredSession)
 }
 
 export const useUserStore = defineStore('user', () => {

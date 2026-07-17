@@ -9,5 +9,8 @@
   "area-no-joined": "vous n'avez pas rejoint d'organisation",
   "area-no-joined-subtitle": "Ceci est une erreur. Essayer de vous reconnecter, ou de contacter un administrateur",
   "hello-user": "Bonjour {username}",
-  "connected-on": "connecter sur {area}"
+  "connected-on": "connecter sur {area}",
+  "you-are-on-area": "vous etes à {area}",
+  "select-other-area:": "choisir une autre organisation:",
+  "select-area": "choisir une organisation"
 }

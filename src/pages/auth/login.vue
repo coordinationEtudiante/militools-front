@@ -63,7 +63,7 @@ async function loginUser() {
 
 <template>
   <div
-    class="relative p-6 sm:p-10 border border-gray-300 rounded-3xl flex flex-col gap-2 overflow-scroll bg-white m-auto"
+    class="relative m-auto flex flex-col gap-2 overflow-scroll rounded-3xl border border-gray-300 bg-white p-6 sm:p-10"
   >
     <h1
       class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance"

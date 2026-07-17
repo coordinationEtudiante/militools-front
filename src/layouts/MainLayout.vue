@@ -6,8 +6,8 @@ defineSlots<{
 </script>
 
 <template>
-  <div class="flex w-full h-full gap-2">
-    <slot name="default" />
+  <div class="flex h-full w-full gap-2">
     <slot name="headbar" />
+    <slot name="default" />
   </div>
 </template>

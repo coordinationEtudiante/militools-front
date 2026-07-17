@@ -35,12 +35,14 @@ const ROUTE_METHODS = {
   getRoute: 'GET',
 } as const satisfies Record<CloudFunctionRoute, HttpMethod>
 
-const DEFAULT_OPTIONS: RequestInit = {
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${getToken()}`,
-  },
-  credentials: 'same-origin',
+function getDefaultOptions(): RequestInit {
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getToken()}`,
+    },
+    credentials: 'same-origin',
+  }
 }
 
 export async function fetchRequest<T = unknown>(
@@ -48,11 +50,12 @@ export async function fetchRequest<T = unknown>(
   options: RequestInit = {},
 ): Promise<T> {
   try {
+    const defaultOptions = getDefaultOptions()
     const requestOptions: RequestInit = {
-      ...DEFAULT_OPTIONS,
+      ...defaultOptions,
       ...options,
       headers: {
-        ...DEFAULT_OPTIONS.headers,
+        ...defaultOptions.headers,
         ...(options?.headers || {}),
       },
     }
@@ -161,6 +164,7 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
     )
       .then((json) => (data.value = json))
       .catch((err) => {
+        console.log(err)
         error.value = err instanceof fetchError ? err : new fetchError('Unexpected request error')
         errorCode.value = error.value.status ?? 400
       })
