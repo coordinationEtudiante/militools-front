@@ -12,5 +12,12 @@
   "connected-on": "connecter sur {area}",
   "you-are-on-area": "vous etes à {area}",
   "select-other-area:": "choisir une autre organisation:",
-  "select-area": "choisir une organisation"
+  "select-area": "choisir une organisation",
+  "perm-error:title": "Vous n'avez pas la permission d'acceder a cette resource",
+  "perm-error:permLevels": "Vous avez le droit d'acceder a cette resource mais pas avec ce niveau d'acces, niveau requis: {permLevels}",
+  "perm-error:subtitle": "Demandez a votre administrateur l'acces a {routes}",
+  "perm-error:serverError": "Le serveur vous a communiqué cette erreur, donnée la a l'administrateur: {error}",
+  "perm-error:ask": "Demander cette permission",
+  "no-server-route:title": "Le serveur ne communique aucune routes d'acces",
+  "no-server-route:subtitle": "Ceci est une erreur. Verifier votre connection puis envoyer cette erreur a votre administrateur"
 }

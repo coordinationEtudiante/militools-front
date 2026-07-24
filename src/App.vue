@@ -16,5 +16,3 @@ const isUser = computed(() => router.currentRoute.value.name?.startsWith('/user'
     <RouterView />
   </MainLayout>
 </template>
-
-<style scoped></style>
