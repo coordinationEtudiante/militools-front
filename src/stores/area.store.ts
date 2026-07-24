@@ -37,11 +37,9 @@ export const useAreaStore = defineStore('area', () => {
 
     await fieldsRequest.loadingPromise.value
 
-    console.log(fieldsRequest.data)
     const fetchedFields = fieldsRequest.data.value?.fields ?? []
     const validator = fieldsRequest.data.value?.validator ?? []
 
-    console.log(fetchedFields.length, validator.length)
     if (!fetchedFields.length || !validator.length) {
       storeSession.value = null
       errored.value = true
@@ -83,7 +81,6 @@ export const useAreaStore = defineStore('area', () => {
     }
 
     const { fetchedFields, validator } = fieldsResult
-    console.log(fetchedFields)
 
     const nextSession: StoredSession = {
       areas: fetchedAreas,
