@@ -8,9 +8,19 @@ import type {
   CloudFunctionRequest,
   CloudFunctionResponse,
   CloudFunctionRoute,
+  RouteMethodMap,
 } from '@/types/cloud-functions'
-import type { HttpMethod } from '@/types/cloud-functions/FetchDefault.type'
 import { ref } from 'vue'
+
+const routeMethodMap = {
+  'auth/login': 'POST',
+  'auth/register': 'POST',
+  ':area/contact/getContactFields': 'GET',
+  ':area/routes/getRoutes': 'GET',
+  ':area/action/list': 'GET',
+  '/areas/list': 'POST',
+  getRoute: 'GET',
+} satisfies RouteMethodMap
 
 export function getBaseUrl() {
   const serverStore = useServerStore()
@@ -26,14 +36,6 @@ function getToken() {
   const { token } = useUserStore()
   return token
 }
-
-const ROUTE_METHODS = {
-  '/areas/list': 'POST',
-  ':area/contact/getContactFields': 'POST',
-  'auth/login': 'POST',
-  'auth/register': 'POST',
-  getRoute: 'GET',
-} as const satisfies Record<CloudFunctionRoute, HttpMethod>
 
 function getDefaultOptions(): RequestInit {
   return {
@@ -120,7 +122,7 @@ export async function fetchResource<TRoute extends CloudFunctionRoute>(
   options: FetchResourceOptions<TRoute> = {},
 ): Promise<CloudFunctionResponse<TRoute>> {
   const { body, query, method, areaId, headers, ...requestOptions } = options
-  const resolvedMethod = method ?? (body ? 'POST' : ROUTE_METHODS[route])
+  const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
@@ -145,7 +147,7 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
 
   const { body, query, method, areaId, headers, immediate = true, ...requestOptions } = options
 
-  const resolvedMethod = method ?? ROUTE_METHODS[route]
+  const resolvedMethod = method ?? routeMethodMap[route]
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
