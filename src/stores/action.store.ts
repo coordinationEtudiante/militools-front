@@ -4,16 +4,20 @@ import type { CloudFunctionResponse } from '@/types/cloud-functions'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-type Action = CloudFunctionResponse<':area/action/list'>[number]
+export type Action = CloudFunctionResponse<':area/action/list'>[number]
 
 export const useActionStore = defineStore('action', () => {
   const actions = ref<Action[]>([])
   const loading = ref(false)
   const errored = ref(false)
 
-  const getParticipatingAction = computed(() => actions.value.filter((a) => a.awnser !== null))
+  const getParticipatingAction = computed(
+    () => (actions.value.filter((a) => a.awnser !== null) ?? []) as Action[],
+  )
 
-  const GetNotParticipatingAction = computed(() => actions.value.filter((a) => a.awnser === null))
+  const GetNotParticipatingAction = computed(
+    () => actions.value.filter((a) => a.awnser === null) as Action[],
+  )
 
   async function reloadActions() {
     loading.value = true

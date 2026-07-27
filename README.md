@@ -46,3 +46,7 @@ npm run build
 ```sh
 npm run lint
 ```
+
+## todo
+
+- [ ] on user home page, actions must come from all its areas.

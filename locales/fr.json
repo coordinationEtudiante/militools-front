@@ -19,5 +19,20 @@
   "perm-error:serverError": "Le serveur vous a communiqué cette erreur, donnée la a l'administrateur: {error}",
   "perm-error:ask": "Demander cette permission",
   "no-server-route:title": "Le serveur ne communique aucune routes d'acces",
-  "no-server-route:subtitle": "Ceci est une erreur. Verifier votre connection puis envoyer cette erreur a votre administrateur"
+  "no-server-route:subtitle": "Ceci est une erreur. Verifier votre connection puis envoyer cette erreur a votre administrateur",
+  "hello.afternoon": "🚣 Bonne après-midi {name}",
+  "hello.awakening": "🥱 Bon reveil {name}",
+  "hello.evening": "🌇 Bonne soirée {name}",
+  "hello.morning": "🏃‍♂️‍➡️ Bonne matiné {name}",
+  "hello.night": "🧸 Bonne nuit {name}",
+  "hello.noon": "🥪 Bonne apetit {name}",
+  "action:presentation:no-action": "vous n'avez pas d'action aujourd'hui",
+  "action:presentation:low": "vous avez {nbAction} actions aujourd'hui !",
+  "action:presentation:many": "whouu vous etes bien occuper vous avez {nbAction} actions 'hui !",
+  "action:presentation:legend": "incroyable vous etes pret a etre ministre: {nbAction} actions bonne chance !",
+  "action:presentation:insane": "{nbAction} vous etes l'antiprocrastinateur, vous etes present inversement a bardela au parlement",
+  "button.give-up": "Abandonner l'action",
+  "button.not-participate": "Pas cette fois",
+  "button.participate": "Participer",
+  "is-empty": "c'est vide par ici 🔍"
 }

@@ -39,7 +39,7 @@ const goToSetting = () => {
 </script>
 
 <template>
-  <div class="m-8 flex flex-col justify-between gap-4 rounded-xl border border-gray-300 p-4">
+  <div class="flex flex-col justify-between gap-4 rounded-xl border border-gray-300 p-4">
     <div class="flex flex-col">
       <Button unstyled @click="goToSetting">
         <Dicebear :seed :size="32" v-tooltip="userStore.user.name" />

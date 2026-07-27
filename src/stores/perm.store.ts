@@ -64,13 +64,7 @@ export const usePermStore = defineStore('perm', () => {
       else return false
     }
 
-    const routeEntry = routes.value.find(
-      (r) =>
-        r.path === route ||
-        r.path === `/${route}` ||
-        r.routes === route ||
-        r.routes === route.replace(/^\//, ''),
-    )
+    const routeEntry = routes.value.find((r) => r.routes === route || r.routes == '/' + route)
 
     if (!routeEntry) {
       if (redirect) throw router.replace({ path: '/403', query: { routes: route } })

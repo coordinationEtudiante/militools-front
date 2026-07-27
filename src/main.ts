@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { Tooltip } from 'primevue'
 import PrimeVue from 'primevue/config'
 import Mask from 'primevue/mask'
+import ToastService from 'primevue/toastservice'
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import enMessages from '../locales/en.json'
@@ -38,9 +39,9 @@ app.use(PrimeVue, {
 })
 app.directive('mask', Mask)
 app.directive('tooltip', Tooltip)
-
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
+app.use(ToastService)
 
 app.mount('#app')
