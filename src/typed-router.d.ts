@@ -65,6 +65,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/user/action/[id]': RouteRecordInfo<
+      '/user/action/[id]',
+      '/user/action/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/user/action/create': RouteRecordInfo<
+      '/user/action/create',
+      '/user/action/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/user/settings/': RouteRecordInfo<
       '/user/settings/',
       '/user/settings',
@@ -118,6 +132,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/user/index.vue': {
       routes:
         | '/user/'
+      views:
+        | never
+    }
+    'src/pages/user/action/[id].vue': {
+      routes:
+        | '/user/action/[id]'
+      views:
+        | never
+    }
+    'src/pages/user/action/create.vue': {
+      routes:
+        | '/user/action/create'
       views:
         | never
     }

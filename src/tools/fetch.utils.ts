@@ -48,7 +48,7 @@ export async function fetchRequest<T = unknown>(
       ...options,
       headers: {
         ...defaultOptions.headers,
-        ...(options?.headers || {}),
+        ...options?.headers,
       },
     }
 
@@ -120,6 +120,7 @@ export async function fetchResource<TRoute extends CloudFunctionRoute>(
 ): Promise<CloudFunctionResponse<TRoute>> {
   const { body, query, method, areaId, headers, ...requestOptions } = options
   const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
+  console.log(route, method)
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
@@ -147,7 +148,7 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
   const { body, query, method, areaId, headers, immediate = true, ...requestOptions } = options
 
   const isFormData = body instanceof FormData
-  const resolvedMethod = method ?? routeMethodMap[route]
+  const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
