@@ -1,7 +1,7 @@
 <template>
-  <div class="flex w-full gap-2">
+  <div class="flex w-full flex-col gap-2 overflow-y-auto lg:flex-row lg:overflow-hidden">
     <Toast />
-    <MCard class="w-full" :title="t('action.creation')">
+    <MCard class="w-full overflow-hidden lg:overflow-scroll" :title="t('action.creation')">
       <Form class="flex w-full flex-col gap-4">
         <span class="flex flex-col gap-1">
           <label for="action.title">{{ t('input.title') }}</label>
@@ -51,7 +51,7 @@
           <label for="action.adress">{{ t('input.location-adress') }}</label>
           <LocationPicker @change="(value) => (locationPicked = value)" />
         </span>
-        <span class="flex flex-col gap-1" v-if="immagePerm">
+        <span class="flex flex-col gap-1" v-if="imagePerm">
           <Message severity="warn">{{ t('input.image.warn') }}</Message>
           <span class="flex items-center gap-1">
             <label for="action.image">{{ t('input.image') }}</label>
@@ -79,7 +79,7 @@
         }}</Button>
       </template>
     </MCard>
-    <MCard class="w-full" :title="t('action.render')">
+    <MCard class="w-full overflow-hidden lg:overflow-scroll" :title="t('action.render')">
       <div class="flex flex-col gap-6">
         <!-- Image -->
         <div
@@ -172,7 +172,7 @@ const locationPicked = ref<{
   lng: number
 }>()
 
-const immagePerm = computed(() => permStore.getPerm(':area/image/create', false))
+const imagePerm = computed(() => permStore.getPerm(':area/image/create', false))
 
 watch(locationPicked, (picked) => {
   location.value = { x: picked?.lat ?? 0, y: picked?.lng ?? 0 }
@@ -229,8 +229,8 @@ async function handleCreateAction() {
       if (uploadError === 413) {
         toast.add({
           severity: 'error',
-          summary: t('immage-too-big'),
-          detail: t('immage-too-big.max-10mo'),
+          summary: t('image-too-big'),
+          detail: t('image-too-big.max-10mo'),
           life: 3000,
         })
         isLoading.value = false

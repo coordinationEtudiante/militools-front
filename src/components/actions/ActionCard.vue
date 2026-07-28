@@ -70,7 +70,7 @@
 import type { Action } from '@/stores/action.store'
 import { useAreaStore } from '@/stores/area.store'
 import { computed } from 'vue'
-import { usePermStore } from '@/stores/perm.store.ts'
+import { usePermStore } from '@/stores/perm.store'
 import ActionButton from './ActionButton.vue'
 import { Tag } from 'primevue'
 import { Megaphone, Calendar, Clock, ImageOff } from '@lucide/vue'

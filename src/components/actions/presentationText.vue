@@ -18,7 +18,7 @@ const { t } = useI18n()
 //TODO: load this when action store is created
 const nbAction = computed(() => actionStore.getParticipatingAction.length)
 
-const hasPerm = getPerms([':area/routes/getRoutes', ':area/action/list'], false)
+const hasPerm = computed(() => getPerms([':area/routes/getRoutes', ':area/action/list'], false))
 
 const presentation = computed(() => {
   if (nbAction.value == 0) {

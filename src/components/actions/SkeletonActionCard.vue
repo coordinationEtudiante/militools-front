@@ -36,5 +36,5 @@
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-defineProps<{ type: 'registred' | 'default' }>()
+defineProps<{ type: 'registered' | 'default' }>()
 </script>

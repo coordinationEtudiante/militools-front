@@ -15,7 +15,7 @@ export const useActionStore = defineStore('action', () => {
     () => (actions.value.filter((a) => a.awnser !== null) ?? []) as Action[],
   )
 
-  const GetNotParticipatingAction = computed(
+  const getNotParticipatingAction = computed(
     () => actions.value.filter((a) => a.awnser === null) as Action[],
   )
 
@@ -66,7 +66,7 @@ export const useActionStore = defineStore('action', () => {
     errored,
     errorMessage,
     getParticipatingAction,
-    GetNotParticipatingAction,
+    getNotParticipatingAction,
     reloadActions,
     getActionById,
     setActionResponse,

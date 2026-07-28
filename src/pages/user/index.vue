@@ -42,10 +42,10 @@ const createPerm = computed(() => getPerm(':area/action/list', false))
       </div>
       <!-- page -->
       <MCard :title="t('your-registered-action')">
-        <ActionList orienation="horizontal" :actions="actionStore.getParticipatingAction" />
+        <ActionList orientation="horizontal" :actions="actionStore.getParticipatingAction" />
       </MCard>
       <MCard :title="t('other-week-action')">
-        <ActionList orienation="horizontal" :actions="actionStore.GetNotParticipatingAction" />
+        <ActionList orientation="horizontal" :actions="actionStore.getNotParticipatingAction" />
       </MCard>
     </div>
   </div>
