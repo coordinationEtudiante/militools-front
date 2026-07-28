@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const createImageMethod = 'POST' as const
 export type createImage = FetchDefault<
   { file: File; alt?: string },
   {
@@ -14,5 +15,5 @@ export type createImage = FetchDefault<
     creator: number
   },
   Record<string, never>,
-  'POST'
+  typeof createImageMethod
 >

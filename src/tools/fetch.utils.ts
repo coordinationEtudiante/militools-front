@@ -148,7 +148,7 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
   const { body, query, method, areaId, headers, immediate = true, ...requestOptions } = options
 
   const isFormData = body instanceof FormData
-  const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
+  const resolvedMethod = method ?? routeMethodMap[route]
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route

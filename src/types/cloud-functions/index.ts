@@ -1,13 +1,16 @@
-import type { createAction } from './actions/create.type'
-import type { listAction } from './actions/list.type'
-import type { setActionResponse } from './actions/setActionResponse.type'
-import type { getAreaFetch } from './areas/getArea.type'
-import type { LoginFetch } from './auth/login.type'
-import type { RegisterFetch } from './auth/register.type'
-import type { getContactFieldsFetch } from './contacts/getContactFields'
-import type { createImage } from './image/create.type'
-import type { getPermFetch } from './perm/getPerm'
-import type { getRouteFetch } from './routes/getRoutes.type'
+import { type createAction, createActionMethod } from './actions/create.type'
+import { type listAction, listActionMethod } from './actions/list.type'
+import { type setActionResponse, setActionResponseMethod } from './actions/setActionResponse.type'
+import { type getAreaFetch, getAreaFetchMethod } from './areas/getArea.type'
+import { type LoginFetch, LoginFetchMethod } from './auth/login.type'
+import { type RegisterFetch, RegisterFetchMethod } from './auth/register.type'
+import {
+  type getContactFieldsFetch,
+  getContactFieldsFetchMethod,
+} from './contacts/getContactFields'
+import { type createImage, createImageMethod } from './image/create.type'
+import { type getPermFetch, getPermFetchMethod } from './perm/getPerm'
+import { type getRouteFetch, getRouteFetchMethod } from './routes/getRoutes.type'
 
 export type CloudFunctionRouteMap = {
   ':area/action/create': createAction
@@ -20,6 +23,21 @@ export type CloudFunctionRouteMap = {
   'auth/login': LoginFetch
   'auth/register': RegisterFetch
   getRoute: getRouteFetch
+}
+
+export const routeMethodMap = {
+  ':area/action/create': createActionMethod,
+  ':area/action/list': listActionMethod,
+  ':area/action/respond': setActionResponseMethod,
+  ':area/contact/getContactFields': getContactFieldsFetchMethod,
+  ':area/image/create': createImageMethod,
+  ':area/routes/getRoutes': getPermFetchMethod,
+  '/areas/list': getAreaFetchMethod,
+  'auth/login': LoginFetchMethod,
+  'auth/register': RegisterFetchMethod,
+  getRoute: getRouteFetchMethod,
+} as const satisfies {
+  [K in CloudFunctionRoute]: CloudFunctionDefinition<K>['method']
 }
 
 export type CloudFunctionRoute = keyof CloudFunctionRouteMap
@@ -38,12 +56,5 @@ export type CloudFunctionQuery<TRoute extends CloudFunctionRoute> =
 
 export type CloudFunctionMethod<TRoute extends CloudFunctionRoute> =
   CloudFunctionDefinition<TRoute>['method']
-
-// This is a runtime object (value) typed from the route definitions.
-// It's initialized as an empty object and asserted to the mapped type so
-// its shape is enforced by TypeScript while remaining a value at runtime.
-export const routeMethodMap = {} as {
-  [K in CloudFunctionRoute]: CloudFunctionDefinition<K>['method']
-}
 
 export type RouteMethodMap = typeof routeMethodMap

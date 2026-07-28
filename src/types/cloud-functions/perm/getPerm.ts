@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const getPermFetchMethod = 'GET' as const
 export type getPermFetch = FetchDefault<
   Record<string, never>,
   {
@@ -19,5 +20,5 @@ export type getPermFetch = FetchDefault<
     }[]
   },
   Record<string, never>,
-  'GET'
+  typeof getPermFetchMethod
 >

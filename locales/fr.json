@@ -54,5 +54,10 @@
   "action.error.upload": "Erreur lors de l'upload de l'image",
   "action.error.creation": "Erreur lors de la création de l'action",
   "immage-too-big": "Votre image et trop lourde",
-  "immage-too-big.max-10mo": "Une image doit faire moins de 10Mo pour etre valide."
+  "immage-too-big.max-10mo": "Une image doit faire moins de 10Mo pour etre valide.",
+  "input.image.warn": "atention cette image sera accessible sur internet sans authentification.",
+  "new-action": "nouvelle action",
+  "your-registered-action": "Les action ou tu est inscrit•e",
+  "other-week-action": "autre action de la semaine",
+  "input.image.no-perm": "vous n'avez pas la permission d'envoyer des image"
 }

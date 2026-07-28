@@ -1,5 +1,4 @@
-import { listAction as fetchActions } from '@/cloud-functions/actions/list'
-import { setActionResponse as fetchSetActionResponse } from '@/cloud-functions/actions/setActionResponse'
+import { fetchResource } from '@/tools/fetch.utils'
 import type { CloudFunctionResponse } from '@/types/cloud-functions'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -10,6 +9,7 @@ export const useActionStore = defineStore('action', () => {
   const actions = ref<Action[]>([])
   const loading = ref(false)
   const errored = ref(false)
+  const errorMessage = ref<string | null>(null)
 
   const getParticipatingAction = computed(
     () => (actions.value.filter((a) => a.awnser !== null) ?? []) as Action[],
@@ -19,22 +19,19 @@ export const useActionStore = defineStore('action', () => {
     () => actions.value.filter((a) => a.awnser === null) as Action[],
   )
 
-  async function reloadActions() {
+  async function reloadActions(
+    granularity: 'day' | 'week' | 'month' | 'year' | 'custom' = 'week',
+  ): Promise<void> {
     loading.value = true
     errored.value = false
+    errorMessage.value = null
 
     try {
-      const req = fetchActions()
-      await req.loadingPromise.value
-
-      if (req.error.value || !req.data.value) {
-        errored.value = true
-        return
-      }
-
-      actions.value = req.data.value
-    } catch {
+      actions.value = await fetchResource(':area/action/list', { query: { granularity } })
+    } catch (e) {
       errored.value = true
+      errorMessage.value = e instanceof Error ? e.message : 'Unknown error'
+      throw e
     } finally {
       loading.value = false
     }
@@ -45,11 +42,13 @@ export const useActionStore = defineStore('action', () => {
   }
 
   async function setActionResponse(actionId: number, awnser: boolean | null) {
-    const req = fetchSetActionResponse({ actionId, awnser })
-    await req.loadingPromise.value
-
-    if (req.error.value || !req.data.value) {
+    try {
+      await fetchResource(':area/action/respond', {
+        body: { actionId, awnser },
+      })
+    } catch (e) {
       errored.value = true
+      errorMessage.value = e instanceof Error ? e.message : 'Unknown error'
       return
     }
 
@@ -59,10 +58,13 @@ export const useActionStore = defineStore('action', () => {
     }
   }
 
+  reloadActions()
+
   return {
     actions,
     loading,
     errored,
+    errorMessage,
     getParticipatingAction,
     GetNotParticipatingAction,
     reloadActions,

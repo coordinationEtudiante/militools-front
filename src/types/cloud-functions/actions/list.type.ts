@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const listActionMethod = 'GET' as const
 export type listAction = FetchDefault<
   Record<string, never>,
   {
@@ -29,6 +30,9 @@ export type listAction = FetchDefault<
     dateStart: Date
     dateEnd: Date
   }[],
-  Record<string, never>,
-  'GET'
+  {
+    granularity: 'day' | 'week' | 'month' | 'year' | 'custom'
+    limit?: [string | number | Date, string | number | Date]
+  },
+  typeof listActionMethod
 >

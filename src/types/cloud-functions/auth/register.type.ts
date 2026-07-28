@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const RegisterFetchMethod = 'POST' as const
 export type RegisterFetch = FetchDefault<
   { phone: string; password: string; name: string; email: string },
   {
@@ -10,5 +11,5 @@ export type RegisterFetch = FetchDefault<
     phone: string
   },
   Record<string, never>,
-  'POST'
+  typeof RegisterFetchMethod
 >

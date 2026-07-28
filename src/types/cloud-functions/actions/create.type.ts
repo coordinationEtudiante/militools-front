@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const createActionMethod = 'POST' as const
 export type createAction = FetchDefault<
   {
     title: string
@@ -27,5 +28,5 @@ export type createAction = FetchDefault<
     image: string | null
   },
   Record<string, never>,
-  'POST'
+  typeof createActionMethod
 >

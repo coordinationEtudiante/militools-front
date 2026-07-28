@@ -51,20 +51,26 @@
           <label for="action.adress">{{ t('input.location-adress') }}</label>
           <LocationPicker @change="(value) => (locationPicked = value)" />
         </span>
-        <span class="flex items-center gap-1">
-          <label for="action.image">{{ t('input.image') }}</label>
-          <FileUpload
-            id="action.image"
-            mode="basic"
-            @select="onFileSelect"
-            customUpload
-            accept="image/png, image/jpeg, image/gif, image/jpg"
-            severity="secondary"
-            class="p-button-outlined"
-          />
-          <span v-if="imageName != ''">
-            {{ imageName }}
+        <span class="flex flex-col gap-1" v-if="immagePerm">
+          <Message severity="warn">{{ t('input.image.warn') }}</Message>
+          <span class="flex items-center gap-1">
+            <label for="action.image">{{ t('input.image') }}</label>
+            <FileUpload
+              id="action.image"
+              mode="basic"
+              @select="onFileSelect"
+              customUpload
+              accept="image/png, image/jpeg, image/gif, image/jpg"
+              severity="secondary"
+              class="p-button-outlined"
+            />
+            <span v-if="imageName != ''">
+              {{ imageName }}
+            </span>
           </span>
+        </span>
+        <span v-else>
+          <Message severity="contrast">{{ t('input.image.no-perm') }}</Message>
         </span>
       </Form>
       <template #footer>
@@ -75,7 +81,7 @@
     </MCard>
     <MCard class="w-full" :title="t('action.render')">
       <div class="flex flex-col gap-6">
-        <!-- Image Hero -->
+        <!-- Image -->
         <div
           v-if="image"
           class="h-64 w-full rounded-lg bg-cover bg-center"
@@ -133,16 +139,20 @@ import { createAction } from '@/cloud-functions/actions/create'
 import { createImage } from '@/cloud-functions/image/create'
 import LocationPicker from '@/components/form/LocationPicker.vue'
 import MCard from '@/components/MCard.vue'
-import Map from '@/components/Map.vue'
-import { Button, DatePicker, Fieldset, FileUpload, InputText, Toast } from 'primevue'
+import Map from '@/components/maps/Map.vue'
+import { Button, DatePicker, Fieldset, FileUpload, InputText, Message, Toast } from 'primevue'
 import Editor from 'primevue/editor'
 import { useToast } from 'primevue/usetoast'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Form } from '@primevue/forms'
+import { usePermStore } from '@/stores/perm.store'
+import { useActionStore } from '@/stores/action.store'
 
 const { t } = useI18n()
 const toast = useToast()
+const permStore = usePermStore()
+const actionStore = useActionStore()
 
 const title = ref<string>('')
 const dateStart = ref<Date>(new Date())
@@ -153,13 +163,16 @@ const image = ref<string | null>(null)
 const imageName = ref<string>('')
 const descriptionEvent = ref<string>('')
 const description = ref<string>('')
+const selectedFile = ref<File | null>(null)
+const isLoading = ref(false)
+
 const locationPicked = ref<{
   address: string
   lat: number
   lng: number
 }>()
-const selectedFile = ref<File | null>(null)
-const isLoading = ref(false)
+
+const immagePerm = computed(() => permStore.getPerm(':area/image/create', false))
 
 watch(locationPicked, (picked) => {
   location.value = { x: picked?.lat ?? 0, y: picked?.lng ?? 0 }
@@ -285,6 +298,7 @@ async function handleCreateAction() {
     locationPicked.value = undefined
     dateStart.value = new Date()
     dateEnd.value = new Date()
+    actionStore.reloadActions()
   } catch (error) {
     console.error('Error creating action:', error)
     toast.add({

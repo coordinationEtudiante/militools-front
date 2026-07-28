@@ -2,6 +2,7 @@
 import ActionList from '@/components/actions/ActionList.vue'
 import PresentationText from '@/components/actions/presentationText.vue'
 import MCard from '@/components/MCard.vue'
+import RefreshButton from '@/components/RefreshButton.vue'
 import WelcomeName from '@/components/WelcomeName.vue'
 import { router } from '@/router'
 import { useActionStore } from '@/stores/action.store'
@@ -32,9 +33,10 @@ const createPerm = computed(() => getPerm(':area/action/list', false))
     </div>
     <div class="flex flex-col gap-2 rounded-xl border border-gray-300 p-4">
       <!-- page -->
-      <div class="flex w-full flex-row-reverse p-2" v-if="createPerm">
+      <div class="flex w-full flex-row-reverse gap-2 p-2">
         <!-- action -->
-        <Button severity="contrast" @click="router.push('/user/action/create')">
+        <RefreshButton :refresh="actionStore.reloadActions" />
+        <Button severity="contrast" @click="router.push('/user/action/create')" v-if="createPerm">
           {{ t('new-action') }}
         </Button>
       </div>

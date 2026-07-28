@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const getRouteFetchMethod = 'GET' as const
 export type getRouteFetch = FetchDefault<
   Record<string, never>,
   {
@@ -30,5 +31,5 @@ export type getRouteFetch = FetchDefault<
     }[]
   },
   { area: number },
-  'GET'
+  typeof getRouteFetchMethod
 >
