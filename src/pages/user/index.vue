@@ -1,17 +1,52 @@
 <script setup lang="ts">
+import ActionList from '@/components/actions/ActionList.vue'
+import PresentationText from '@/components/actions/presentationText.vue'
+import MCard from '@/components/MCard.vue'
+import RefreshButton from '@/components/RefreshButton.vue'
+import WelcomeName from '@/components/WelcomeName.vue'
 import { router } from '@/router'
-import { useAreaStore } from '@/stores/area.store'
-import { useUserStore } from '@/stores/user.store'
+import { useActionStore } from '@/stores/action.store'
+import { usePermStore } from '@/stores/perm.store'
+import { Button } from 'primevue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { user } = useUserStore()
-const { getArea } = useAreaStore()
-
 const { t } = useI18n()
+const actionStore = useActionStore()
+const { getPerm } = usePermStore()
+
+getPerm(':area/action/list')
+
+const createPerm = computed(() => getPerm(':area/action/list', false))
 </script>
 
 <template>
-  {{ t('hello-user', { username: user.name }) }}
-  {{ t('connected-on', { area: getArea().name }) }}
-  {{ router.currentRoute.value.name.startsWith('/user') }}
+  <div class="flex w-full min-w-0 flex-col gap-2 overflow-x-hidden">
+    <div class="mb-4 flex min-w-0 flex-col gap-2">
+      <!-- header -->
+      <h1 class="text-6xl tracking-tighter text-balance text-gray-950">
+        <WelcomeName />
+      </h1>
+      <p class="text-base text-gray-700">
+        <PresentationText />
+      </p>
+    </div>
+    <div class="flex flex-col gap-2 rounded-xl border border-gray-300 p-4">
+      <!-- page -->
+      <div class="flex w-full flex-row-reverse gap-2 p-2">
+        <!-- action -->
+        <RefreshButton :refresh="actionStore.reloadActions" />
+        <Button severity="contrast" @click="router.push('/user/action/create')" v-if="createPerm">
+          {{ t('new-action') }}
+        </Button>
+      </div>
+      <!-- page -->
+      <MCard :title="t('your-registered-action')">
+        <ActionList orientation="horizontal" :actions="actionStore.getParticipatingAction" />
+      </MCard>
+      <MCard :title="t('other-week-action')">
+        <ActionList orientation="horizontal" :actions="actionStore.getNotParticipatingAction" />
+      </MCard>
+    </div>
+  </div>
 </template>

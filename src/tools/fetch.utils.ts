@@ -2,14 +2,14 @@ import { fetchError } from '@/errors/fetch.error'
 import { useAreaStore } from '@/stores/area.store'
 import { useServerStore } from '@/stores/server.store'
 import { useUserStore } from '@/stores/user.store'
-import type {
-  CloudFunctionMethod,
-  CloudFunctionQuery,
-  CloudFunctionRequest,
-  CloudFunctionResponse,
-  CloudFunctionRoute,
+import {
+  routeMethodMap,
+  type CloudFunctionMethod,
+  type CloudFunctionQuery,
+  type CloudFunctionRequest,
+  type CloudFunctionResponse,
+  type CloudFunctionRoute,
 } from '@/types/cloud-functions'
-import type { HttpMethod } from '@/types/cloud-functions/FetchDefault.type'
 import { ref } from 'vue'
 
 export function getBaseUrl() {
@@ -26,14 +26,6 @@ function getToken() {
   const { token } = useUserStore()
   return token
 }
-
-const ROUTE_METHODS = {
-  '/areas/list': 'POST',
-  ':area/contact/getContactFields': 'POST',
-  'auth/login': 'POST',
-  'auth/register': 'POST',
-  getRoute: 'GET',
-} as const satisfies Record<CloudFunctionRoute, HttpMethod>
 
 function getDefaultOptions(): RequestInit {
   return {
@@ -56,8 +48,15 @@ export async function fetchRequest<T = unknown>(
       ...options,
       headers: {
         ...defaultOptions.headers,
-        ...(options?.headers || {}),
+        ...options?.headers,
       },
+    }
+
+    if (requestOptions.body instanceof FormData) {
+      const h = { ...(requestOptions.headers as Record<string, string>) }
+      delete h['Content-Type']
+      delete h['content-type']
+      requestOptions.headers = h
     }
 
     if (endpoint.includes(':area')) endpoint = endpoint.replace(':area', getAreaId().toString())
@@ -89,7 +88,7 @@ type FetchResourceOptions<TRoute extends CloudFunctionRoute> = Omit<
   RequestInit,
   'body' | 'method'
 > & {
-  body?: CloudFunctionRequest<TRoute>
+  body?: CloudFunctionRequest<TRoute> | FormData
   query?: CloudFunctionQuery<TRoute>
   method?: CloudFunctionMethod<TRoute>
   areaId?: number
@@ -120,16 +119,19 @@ export async function fetchResource<TRoute extends CloudFunctionRoute>(
   options: FetchResourceOptions<TRoute> = {},
 ): Promise<CloudFunctionResponse<TRoute>> {
   const { body, query, method, areaId, headers, ...requestOptions } = options
-  const resolvedMethod = method ?? (body ? 'POST' : ROUTE_METHODS[route])
+  const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
+  console.log(route, method)
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
 
+  const isFormData = body instanceof FormData
+
   return fetchRequest<CloudFunctionResponse<TRoute>>(`${resolvedRoute}${buildQueryString(query)}`, {
     ...requestOptions,
     method: resolvedMethod,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: isFormData ? { Authorization: `Bearer ${getToken()}` } : headers,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   })
 }
 
@@ -145,7 +147,8 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
 
   const { body, query, method, areaId, headers, immediate = true, ...requestOptions } = options
 
-  const resolvedMethod = method ?? ROUTE_METHODS[route]
+  const isFormData = body instanceof FormData
+  const resolvedMethod = method ?? routeMethodMap[route]
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
@@ -158,8 +161,8 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
       {
         ...requestOptions,
         method: resolvedMethod,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
+        headers: isFormData ? { Authorization: `Bearer ${getToken()}` } : headers,
+        body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       },
     )
       .then((json) => (data.value = json))

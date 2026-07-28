@@ -2,6 +2,7 @@
 import Dicebear from '@/components/Dicebear.vue'
 import { router } from '@/router'
 import { useAreaStore } from '@/stores/area.store'
+import { usePermStore } from '@/stores/perm.store'
 import { useUserStore } from '@/stores/user.store'
 import { Style } from '@dicebear/core'
 import definition from '@dicebear/styles/shape-grid.json' with { type: 'json' }
@@ -14,11 +15,13 @@ const style = new Style(definition)
 
 const userStore = useUserStore()
 const areaStore = useAreaStore()
+const permStore = usePermStore()
 
 const { t } = useI18n()
 
 const seed = computed(() => String(userStore.connected ? userStore.user.id : 0))
 const area = computed(() => areaStore.getArea())
+const actionPerm = computed(() => permStore.getPerm(':area/action/list', false))
 
 const selectedArea = ref(area.value.id)
 const po = ref()
@@ -39,14 +42,14 @@ const goToSetting = () => {
 </script>
 
 <template>
-  <div class="m-8 flex flex-col justify-between gap-4 rounded-xl border border-gray-300 p-4">
+  <div class="flex flex-col justify-between gap-4 rounded-xl border border-gray-300 p-4">
     <div class="flex flex-col">
       <Button unstyled @click="goToSetting">
         <Dicebear :seed :size="32" v-tooltip="userStore.user.name" />
       </Button>
     </div>
     <div class="flex flex-col gap-4">
-      <Clapperboard :size="24" />
+      <Clapperboard :size="24" @click="router.push('/user')" v-if="actionPerm" />
       <BookUser :size="24" />
       <Gavel :size="24" />
       <Users :size="24" />

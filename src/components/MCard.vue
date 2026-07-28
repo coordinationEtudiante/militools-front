@@ -7,6 +7,7 @@ defineProps<{
   loading?: boolean
   bgColor?: BgColor
   errorMessage?: string
+  noScroll?: boolean
 }>()
 
 defineSlots<{

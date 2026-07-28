@@ -1,5 +1,6 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
+export const getContactFieldsFetchMethod = 'GET' as const
 export type getContactFieldsFetch = FetchDefault<
   Record<string, never>,
   {
@@ -16,5 +17,5 @@ export type getContactFieldsFetch = FetchDefault<
     validator: string[][]
   },
   Record<string, never>,
-  'GET'
+  typeof getContactFieldsFetchMethod
 >
