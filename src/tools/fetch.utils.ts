@@ -120,7 +120,6 @@ export async function fetchResource<TRoute extends CloudFunctionRoute>(
 ): Promise<CloudFunctionResponse<TRoute>> {
   const { body, query, method, areaId, headers, ...requestOptions } = options
   const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
-  console.log(route, method)
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
@@ -178,4 +177,18 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
     doFetch()
   }
   return { data, error, loadingPromise, isLoading, errorCode, doFetch }
+}
+
+/**
+ * on http request some regex are transform. this fonction clean alterate regex
+ */
+export function parseRegexPattern(raw: string) {
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('/')) {
+    const lastSlash = trimmed.lastIndexOf('/')
+    if (lastSlash > 0) {
+      return { pattern: trimmed.slice(1, lastSlash), flags: trimmed.slice(lastSlash + 1) }
+    }
+  }
+  return { pattern: trimmed, flags: '' }
 }
