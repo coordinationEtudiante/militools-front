@@ -40,6 +40,16 @@ function idsToValue<T>(datas: { id: number; value: T }[][]): { [key: string]: T 
   })
 }
 
+function cleanContactData<T>(datas: { [key: string]: T }[]): { [key: string]: T }[] {
+  return datas.map((data) =>
+    Object.fromEntries(
+      Object.entries(data).filter(
+        ([, value]) => value !== '' && value !== null && value !== undefined,
+      ),
+    ),
+  )
+}
+
 function getNumberValueInField(
   otherProbableFields: Array<string> | Array<{ name: string; newName?: string }>,
   name: string,
@@ -54,4 +64,4 @@ function getNumberValueInField(
   )
 }
 
-export { namesToId, FieldsToIds, idsToValue, getNumberValueInField }
+export { namesToId, FieldsToIds, idsToValue, cleanContactData, getNumberValueInField }

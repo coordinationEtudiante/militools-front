@@ -1,329 +1,357 @@
 <template>
-  <div v-if="errored">{{ t('error') }}</div>
-  <div v-else class="flex h-full flex-col gap-2">
-    <Card class="w-full">
+  <Toast />
+  <div v-if="errored" class="flex h-full w-full items-center justify-center">
+    <Message severity="error" variant="simple">{{ t('error') }}</Message>
+  </div>
+  <div v-else class="flex h-full w-full flex-col gap-2">
+    <Card class="w-full shrink-0">
       <template #title>{{ t('merge') }}</template>
       <template #content>
         <!-- progress bar -->
-        <div class="row flex h-2 w-full gap-4">
+        <div class="flex h-2 w-full gap-4">
           <div class="h-2 w-full rounded-full bg-sky-500"></div>
           <div class="h-2 w-full rounded-full bg-sky-500"></div>
           <div class="h-2 w-full rounded-full bg-sky-500"></div>
         </div>
       </template>
     </Card>
-    <div class="flex h-full w-full flex-row gap-2">
-      <Card class="w-full flex-2">
+
+    <div class="flex min-h-0 flex-1 flex-col gap-2 xl:flex-row">
+      <!-- duplicates list -->
+      <Card
+        class="flex max-h-72 min-h-0 w-full shrink-0 flex-col xl:max-h-none xl:w-2/5"
+        :pt="{
+          body: { class: 'flex min-h-0 flex-1 flex-col' },
+          content: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
+        }"
+      >
         <template #header>
-          <h1 class="m-2 text-xl text-gray-950">
+          <h1 class="text-xl text-gray-950">
             {{ t('duplications-detected', { nbDuplicate: nbDuplicate ?? '...' }) }}
           </h1>
         </template>
         <template #content>
-          <div>
-            <div class="flex justify-between gap-2 px-3">
-              <span>{{ t('duplication-status') }}</span>
-              <span v-for="(field, i) in showField" :key="`label ${i}`">{{ field.name }}</span>
-            </div>
-            <div class="flex flex-col gap-2">
-              <Button
-                class="w-full"
-                v-for="(data, i) in duplicate"
-                :key="`button ${i}`"
-                :class="{ 'ring-2 ring-blue-300': selectedField === data.index }"
-                severity="secondary"
-                @click="selectDuplicate(data.index)"
-              >
-                <div class="flex w-full items-center justify-between gap-2">
-                  <Tag
-                    icon="pi pi-exclamation-triangle"
-                    :severity="getSeverityFromStatus(`duplication.${data.status}`)"
-                    :value="t(`duplication.${data.status}`)"
-                  />
-                  <span v-for="(key, j) in showField" :key="`span ${j}`">
-                    {{ data.duplicateOf.find((d) => d.name == key.name)?.value }}
+          <div v-if="loading" class="flex items-center justify-center p-8 text-gray-400">
+            {{ t('merge.loading') }}
+          </div>
+          <div
+            v-else-if="duplicates.length === 0"
+            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+          >
+            <CircleCheck class="h-5 w-5 text-emerald-500" />
+            {{ t('no-duplicate') }}
+          </div>
+          <div v-else class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
+            <Button
+              v-for="(dup, i) in duplicates"
+              :key="dup.index"
+              class="w-full"
+              :class="{ 'ring-2 ring-blue-300': selectedIdx === i }"
+              severity="secondary"
+              @click="selectDuplicate(i)"
+            >
+              <div class="flex w-full flex-wrap items-center justify-between gap-2">
+                <span class="flex min-w-0 flex-col items-start">
+                  <span class="truncate text-sm font-semibold">
+                    {{ summaryOf(dup) || `#${dup.index}` }}
                   </span>
-                </div>
-              </Button>
-            </div>
+                  <span class="text-xs text-gray-500">
+                    {{ t('duplication-index', { index: dup.index + 1 }) }}
+                  </span>
+                </span>
+                <Tag
+                  :severity="statusSeverity(dup.status)"
+                  :value="t(`duplication.${dup.status}`)"
+                />
+              </div>
+            </Button>
           </div>
         </template>
       </Card>
-      <Card class="flex-3" style="height: 100%">
+
+      <!-- merge editor -->
+      <Card
+        class="flex min-h-0 w-full flex-1 flex-col"
+        :pt="{
+          body: { class: 'flex min-h-0 flex-1 flex-col' },
+          content: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
+        }"
+      >
         <template #header>
-          <h1
-            class="m-2 flex items-center gap-2 text-xl text-gray-950"
-            v-if="values[selectedField] !== undefined"
-          >
-            <!-- TODO replace this when identifer of contact is defined -->
-            {{ values[selectedField]!['nom'] }}
+          <h1 class="flex min-w-0 items-center gap-2 text-xl text-gray-950">
+            <span class="truncate">{{ selectedTitle || t('merge') }}</span>
             <Tag
-              icon="pi pi-exclamation-triangle"
-              :severity="
-                getSeverityFromStatus(
-                  `duplication.${duplicate.find((d) => d.index == selectedField)?.status}`,
-                )
-              "
-              :value="t(`duplication.${duplicate.find((d) => d.index == selectedField)?.status}`)"
+              v-if="selectedDuplicate"
+              :severity="statusSeverity(selectedDuplicate.status)"
+              :value="t(`duplication.${selectedDuplicate.status}`)"
             />
           </h1>
         </template>
         <template #content>
-          <table class="w-full">
-            <tr class="border-b-2 border-white">
-              <th
-                class="bg-surface-50 rounded-tl-xl border-r-2 border-white"
-                aria-label="name of fields"
-              ></th>
-              <th class="bg-surface-50 rounded-tr-xl">{{ t('local-version') }}</th>
-              <th aria-label="application button"></th>
-              <th class="rounded-t-xl bg-blue-100">{{ t('final-version') }}</th>
-              <th aria-label="application button"></th>
-              <th class="bg-surface-50 rounded-t-xl">{{ t('server-version') }}</th>
-            </tr>
-            <tr v-for="(data, i) in duplicateServerVal" :key="data.id">
-              <th
-                class="bg-surface-50 border-r-2 border-white"
-                :class="i == (duplicateServerVal?.length ?? 0) - 1 ? 'rounded-bl-xl' : ''"
-              >
-                {{ data.name }}
-              </th>
-              <th
-                class="bg-surface-50"
-                :class="i == (duplicateServerVal?.length ?? 0) - 1 ? 'rounded-br-xl' : ''"
-              >
-                {{ values[selectedField]?.[data.name] }}
-              </th>
-              <th>
-                <Button
-                  variant="text"
-                  severity="info"
-                  icon="pi pi-angle-double-right"
-                  @click.stop="applyRowLocal(data.name)"
-                />
-              </th>
-              <th
-                class="bg-blue-100"
-                :class="i == (duplicateServerVal?.length ?? 0) - 1 ? 'rounded-b-xl' : ''"
-              >
-                {{ finalValues[data.name] }}
-              </th>
-              <th>
-                <Button
-                  variant="text"
-                  severity="info"
-                  icon="pi pi-angle-double-left"
-                  @click.stop="applyRowServer(data.name)"
-                />
-              </th>
-              <th
-                class="bg-surface-50"
-                :class="i == (duplicateServerVal?.length ?? 0) - 1 ? 'rounded-b-xl' : ''"
-              >
-                {{ data.value }}
-              </th>
-            </tr>
-          </table>
+          <div v-if="loading" class="flex items-center justify-center p-8 text-gray-400">
+            {{ t('merge.loading') }}
+          </div>
+          <div
+            v-else-if="mergeFields.length === 0"
+            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+          >
+            <Users class="h-5 w-5" />
+            {{ t('no-duplicate') }}
+          </div>
+          <div v-else class="min-h-0 flex-1 overflow-auto">
+            <!-- desktop header -->
+            <div
+              class="hidden bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
+            >
+              <div>{{ t('field') }}</div>
+              <div>{{ t('local-version') }}</div>
+              <div></div>
+              <div>{{ t('final-version') }}</div>
+              <div></div>
+              <div>{{ t('server-version') }}</div>
+            </div>
+            <MergeFieldRow
+              v-for="field in mergeFields"
+              :key="field.name"
+              :field="field"
+              @apply-local="applyLocal(field)"
+              @apply-server="applyServer(field)"
+              @update:final="(value) => updateFinal(field, value)"
+            />
+          </div>
         </template>
         <template #footer>
-          <div class="flex w-full justify-center gap-2 align-bottom">
-            <Button @click="applyAllLocal">{{ t('aplicate-local') }}</Button>
-            <Button @click="applyAllServer">{{ t('aplicate-server') }}</Button>
-            <Button @click="saveAndNext">{{ t('save-and-next') }}</Button>
-            <Button @click="abortMerge">{{ t('abort') }}</Button>
+          <div class="flex w-full flex-wrap items-center justify-center gap-2">
+            <Button :label="t('aplicate-local')" severity="secondary" @click="applyAllLocal" />
+            <Button :label="t('aplicate-server')" severity="secondary" @click="applyAllServer" />
+            <Button
+              :label="t('abort')"
+              variant="outlined"
+              severity="contrast"
+              @click="abortMerge"
+            />
+            <Button :label="t('save-and-next')" @click="saveAndNext" />
           </div>
         </template>
       </Card>
     </div>
-    <card>
+
+    <Card class="w-full shrink-0">
       <template #content>
-        <!-- progress bar -->
-        <div>
-          <Button severity="success" @click="goToRecap">
-            {{ t('next') }}
-          </Button>
+        <div class="flex w-full items-center justify-between gap-2">
+          <Message
+            v-if="unresolvedCount > 0"
+            severity="warn"
+            variant="simple"
+            size="small"
+            class="min-w-0"
+          >
+            {{ t('merge-unresolved', { nb: unresolvedCount }) }}
+          </Message>
+          <span v-else />
+          <Button severity="success" @click="goToRecap">{{ t('next') }}</Button>
         </div>
       </template>
-    </card>
+    </Card>
   </div>
 </template>
 
 <script setup lang="ts">
+import MergeFieldRow from '@/components/contacts/MergeFieldRow.vue'
 import { useAreaStore } from '@/stores/area.store'
 import { DataStorage } from '@/stores/contact/creates/dataStorage'
-import { FieldsToIds } from '@/tools/area.utils'
+import { FieldsToIds, cleanContactData } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
 import { extremTrim, mostProbableValue } from '@/tools/string.utils'
-import { Button, Card, Tag } from 'primevue'
-import { computed, onMounted, ref } from 'vue'
+import type { MergeDuplicate, MergeField } from '@/types/merge.type'
+import { CircleCheck, Users } from '@lucide/vue'
+import { Button, Card, Message, Tag, Toast, useToast } from 'primevue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const area = useAreaStore()
 const { t } = useI18n()
+const toast = useToast()
 const router = useRouter()
 
-const fields = ref<Array<{ name: string; type: string }>>([])
-const values = ref<{ [key: string]: string }[]>([])
-const showField = ref<Array<{ name: string; type: string }>>([])
-const errored = ref<boolean>(false)
+const types = ref<{ name: string; type: string }[]>([])
+const typeByName = ref<Map<string, string>>(new Map())
+const values = ref<Record<string, string>[]>([])
+const duplicates = ref<MergeDuplicate[]>([])
+const selectedIdx = ref(0)
+const mergeFields = ref<MergeField[]>([])
 const nbDuplicate = ref<number>()
-const selectedField = ref<number>(0)
-const duplicate = ref<
-  Array<{
-    //index of field
-    index: number
-    // index on server
-    remoteIndex: number
-    // object on server
-    duplicateOf: { id: number; value: string; name: string }[]
-    //resolved status
-    status: 'auto-resolved' | 'resolved' | 'to-resolved'
-  }>
->([])
+const errored = ref(false)
+const loading = ref(true)
 
-const duplicateServerVal = computed(
-  () => duplicate.value.find((d) => d.index == selectedField.value)?.duplicateOf,
+const selectedDuplicate = computed(() => duplicates.value[selectedIdx.value])
+const selectedLocal = computed(() => values.value[selectedDuplicate.value?.index ?? -1] ?? {})
+const unresolvedCount = computed(
+  () => duplicates.value.filter((d) => d.status === 'to-resolved').length,
 )
+const primaryFieldNames = computed(() => area.primaryFields.map((f) => f.name))
+const selectedTitle = computed(() => summaryOf(selectedDuplicate.value))
 
-// final merged values for the currently selected duplicate (keyed by field name)
-const finalValues = ref<{ [key: string]: string }>({})
+function buildMergeFields(dup: MergeDuplicate, local: Record<string, string>): MergeField[] {
+  const serverBy = new Map(dup.duplicateOf.map((d) => [d.name, d]))
+  const names = Array.from(new Set([...dup.duplicateOf.map((d) => d.name), ...Object.keys(local)]))
 
-function initFinalValues() {
-  finalValues.value = {}
-  const serverList = duplicateServerVal.value ?? []
-  serverList.forEach((s) => {
-    const local = values.value[selectedField.value]?.[s.name]
-    finalValues.value[s.name] = local !== undefined && local !== '' ? local : (s.value ?? '')
+  return names.map((name) => {
+    const serverField = serverBy.get(name)
+    const server = serverField?.value ?? ''
+    const localValue = local[name] ?? ''
+    const same = localValue !== '' && server !== '' && extremTrim(localValue) === extremTrim(server)
+
+    return {
+      name,
+      serverId: serverField?.id,
+      type: typeByName.value.get(name) ?? '',
+      local: localValue,
+      server,
+      final: same ? mostProbableValue(localValue, server) : localValue !== '' ? localValue : server,
+      autoResolved: same,
+    }
   })
+}
+
+function isAutoResolved(dup: MergeDuplicate): boolean {
+  const local = values.value[dup.index] ?? {}
+  return buildMergeFields(dup, local).every((f) => !(f.local && f.server) || f.autoResolved)
 }
 
 function selectDuplicate(i: number) {
-  selectedField.value = i
-  initFinalValues()
+  selectedIdx.value = i
+  mergeFields.value = buildMergeFields(selectedDuplicate.value, selectedLocal.value)
 }
 
-function applyRowLocal(name: string) {
-  const local = values.value[selectedField.value]?.[name]
-  finalValues.value[name] = local ?? ''
+function summaryOf(dup?: MergeDuplicate): string {
+  if (!dup) return ''
+  const local = values.value[dup.index] ?? {}
+  const server = new Map(dup.duplicateOf.map((d) => [d.name, d.value]))
+  return primaryFieldNames.value
+    .map((n) => local[n] || server.get(n) || '')
+    .filter(Boolean)
+    .join(' · ')
 }
 
-function applyRowServer(name: string) {
-  const server = (duplicateServerVal.value ?? []).find((d) => d.name === name)?.value
-  finalValues.value[name] = server ?? ''
+function statusSeverity(status: MergeDuplicate['status']) {
+  if (status === 'to-resolved') return 'warn'
+  if (status === 'resolved') return 'success'
+  return 'info'
+}
+
+function applyLocal(field: MergeField) {
+  field.final = field.local
+}
+
+function applyServer(field: MergeField) {
+  field.final = field.server
+}
+
+function updateFinal(field: MergeField, value: string) {
+  field.final = value
 }
 
 function applyAllLocal() {
-  ;(duplicateServerVal.value ?? []).forEach((d) => {
-    const local = values.value[selectedField.value]?.[d.name]
-    if (local !== undefined && local !== '') finalValues.value[d.name] = local
-  })
+  mergeFields.value.forEach((f) => (f.final = f.local))
 }
 
 function applyAllServer() {
-  ;(duplicateServerVal.value ?? []).forEach((d) => {
-    if (d.value !== undefined && d.value !== '') finalValues.value[d.name] = d.value
-  })
-}
-
-function saveAndNext() {
-  const idx = selectedField.value
-  const dup = duplicate.value[idx]
-  if (!dup) return
-
-  // apply merged values into duplicate.duplicateOf and local storage
-  dup.duplicateOf = dup.duplicateOf.map((d) => ({
-    ...d,
-    value: finalValues.value[d.name] ?? d.value,
-  }))
-  // update local values as well
-  values.value[idx] = { ...(values.value[idx] ?? {}), ...finalValues.value }
-  dup.status = 'resolved'
-
-  //find las valid id
-  if (idx < duplicate.value.length - 1) {
-    let nextIdx = idx + 1
-    while (nextIdx < duplicate.value.length && !duplicate.value.find((d) => d.index == nextIdx))
-      nextIdx++
-    if (nextIdx < duplicate.value.length) {
-      selectDuplicate(nextIdx)
-    }
-  }
-}
-
-function autoResovle() {
-  duplicate.value = duplicate.value.map((dup) => {
-    const server = dup.duplicateOf
-    const local = server.map((s) => {
-      // return { id: s.id, name: s.name, value: values.value[selectedField.value]?.[s.name] }
-      const vlocal = values.value[dup.index]?.[s.name]
-      if (!vlocal || !s.value) return vlocal ?? s.value ?? undefined
-      if (extremTrim(vlocal) == extremTrim(s.value)) {
-        return mostProbableValue(vlocal, s.value)
-      } else return false
-    })
-
-    if (local.some((l) => l === false)) {
-      //one or more is not saved by extremTrim
-      return dup
-    } else {
-      return { ...dup, status: 'auto-resolved' }
-    }
-  })
+  mergeFields.value.forEach((f) => (f.final = f.server))
 }
 
 function abortMerge() {
-  initFinalValues()
+  mergeFields.value = buildMergeFields(selectedDuplicate.value, selectedLocal.value)
 }
 
-onMounted(async () => {
-  const types = DataStorage.getType()
-  values.value = DataStorage.getValue()
+function saveAndNext() {
+  const dup = selectedDuplicate.value
+  if (!dup) return
 
-  const fetch = await fetchResource(':area/contact/getDuplicate', {
-    body: { data: FieldsToIds(values.value) },
-  })
+  dup.status = 'resolved'
 
-  nbDuplicate.value = fetch.nbDuplicate
-
-  fields.value = types
-  duplicate.value = fetch.duplicates.map((d) => {
-    return { ...d, status: 'to-resolved' }
-  })
-
-  // initialize selection and final values
-  if (duplicate.value.length > 0) {
-    selectedField.value = 0
-    initFinalValues()
+  const next = duplicates.value.findIndex(
+    (d, i) => i > selectedIdx.value && d.status !== 'resolved',
+  )
+  if (next !== -1) {
+    selectDuplicate(next)
+  } else {
+    toast.add({
+      severity: 'success',
+      summary: t('merge-all-resolved'),
+      life: 3000,
+    })
   }
-
-  autoResovle()
-  showField.value = fields.value.filter((f) => area.primaryFields.some((s) => s.name === f.name))
-})
-
-const getSeverityFromStatus = (status: string) => {
-  if (status == 'duplication.to-resolved') return 'warn'
-  else if (status == 'duplication.resolved') return 'Success'
-  else if (status == 'duplication.auto-resolved') return 'info'
-  return 'warn'
 }
 
 function goToRecap() {
   //json stringify and parse for avoid proxy creation
-  const exclude = new Set(duplicate.value.map((d) => d.index))
+  const exclude = new Set(duplicates.value.map((d) => d.index))
   DataStorage.setArray(
-    JSON.parse(JSON.stringify(values.value.filter((_, index) => !exclude.has(index)))),
+    JSON.parse(
+      JSON.stringify(cleanContactData(values.value.filter((_, index) => !exclude.has(index)))),
+    ),
     DataStorage.getType(),
   )
   DataStorage.setEdit(
-    duplicate.value.map((d) => {
-      return {
-        contactId: d.remoteIndex,
-        data: d.duplicateOf,
-      }
-    }),
+    duplicates.value.map((d) => ({
+      contactId: d.remoteIndex,
+      data: d.duplicateOf,
+    })),
   )
 
   router.push({ name: '/user/contact/creates/recap' })
 }
+
+watch(
+  mergeFields,
+  (list) => {
+    const dup = selectedDuplicate.value
+    if (!dup) return
+
+    const finals = new Map(list.map((f) => [f.name, f.final]))
+    dup.duplicateOf = dup.duplicateOf.map((d) => ({
+      ...d,
+      value: finals.get(d.name) ?? d.value,
+    }))
+
+    const local = { ...values.value[dup.index] }
+    list.forEach((f) => {
+      local[f.name] = f.final
+    })
+    values.value[dup.index] = local
+  },
+  { deep: true },
+)
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    types.value = DataStorage.getType()
+    typeByName.value = new Map(types.value.map((t) => [t.name, t.type]))
+    values.value = cleanContactData(DataStorage.getValue())
+
+    const fetch = await fetchResource(':area/contact/getDuplicate', {
+      body: { data: FieldsToIds(values.value) },
+    })
+
+    nbDuplicate.value = fetch.nbDuplicate
+    duplicates.value = fetch.duplicates.map((d) => ({ ...d, status: 'to-resolved' }))
+
+    duplicates.value.forEach((d) => {
+      if (isAutoResolved(d)) d.status = 'auto-resolved'
+    })
+
+    if (duplicates.value.length > 0) {
+      selectDuplicate(0)
+    }
+    errored.value = false
+  } catch (e) {
+    errored.value = true
+    throw e
+  } finally {
+    loading.value = false
+  }
+})
 </script>
