@@ -1,6 +1,12 @@
 <template>
   <Toast />
-  <Card class="h-full w-full overflow-scroll">
+  <Card
+    class="h-full w-full overflow-hidden"
+    :pt="{
+      body: { class: 'h-full flex flex-col min-h-0' },
+      content: { class: 'h-full flex flex-col min-h-0 overflow-hidden' },
+    }"
+  >
     <template #title>{{ t('create-contacts.review') }}</template>
     <template #header>
       <!-- progress bar -->
@@ -11,209 +17,215 @@
       </div>
     </template>
     <template #content>
-      <div class="flex h-full min-h-0 flex-col gap-2 overflow-scroll">
-        <!-- error -->
-        <div class="mb-2 w-full border-b border-b-sky-500 text-lg">
-          {{ t('create-contacts.review-error-title') }}
+      <div class="flex h-full min-h-0 flex-col gap-3 overflow-auto">
+        <div
+          v-if="totalNb === 0"
+          class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+        >
+          <Users class="h-5 w-5" />
+          {{ t('create-contacts.no-contact') }}
         </div>
-        <div>
-          <div>{{ t('create-contacts.review-error-text') }}</div>
-          <div>
-            {{
-              t('create-contacts.review-error-description', {
-                nbData: error.length,
-              })
-            }}
+        <template v-else>
+          <!-- stats -->
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600"
+              >
+                <Users class="h-5 w-5" />
+              </span>
+              <div class="min-w-0">
+                <div class="text-2xl font-bold text-gray-900">{{ totalNb }}</div>
+                <div class="truncate text-sm text-gray-500">
+                  {{ t('create-contacts.review-total') }}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600"
+              >
+                <TriangleAlert class="h-5 w-5" />
+              </span>
+              <div class="min-w-0">
+                <div class="text-2xl font-bold text-red-600">{{ errorNb }}</div>
+                <div class="truncate text-sm text-red-500">
+                  {{ t('create-contacts.review-error') }}
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
+            >
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600"
+              >
+                <CircleCheck class="h-5 w-5" />
+              </span>
+              <div class="min-w-0">
+                <div class="text-2xl font-bold text-emerald-600">{{ validNb }}</div>
+                <div class="truncate text-sm text-emerald-500">
+                  {{ t('create-contacts.review-valid') }}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <DataTable
-          :value="error"
-          paginator
-          :rows="10"
-          :rowsPerPageOptions="[5, 10, 20, 50]"
-          dataKey="id"
-          filterDisplay="row"
-          editMode="cell"
-          @cell-edit-complete="onCellEditComplete"
-        >
-          <Column v-for="(field, index) in fields" :header="field.name" :key="'error-' + index">
-            <template #body="{ data }">
-              <ColumnData
-                :data="{
-                  id: 0,
-                  createdAt: new Date(),
-                  fields: [{ name: field.name, value: data[field.name] }],
-                }"
-                :type="field"
-              />
-            </template>
-            <template #editor="{ data }">
-              <ContactListInput
-                :name="field.name"
-                :type="field.type"
-                v-model:modelValue="data[field.name]"
-              />
-            </template>
-          </Column>
-        </DataTable>
-        <!-- value -->
-        <div class="mb-2 w-full border-b border-b-sky-500 text-lg">
-          {{ t('create-contacts.review-title') }}
-        </div>
-        <div>
-          {{
-            t('create-contacts.review-description', {
-              nbFields: fields.length,
-              nbData: data.length,
-            })
-          }}
-        </div>
-        <DataTable
-          :value="data"
-          paginator
-          :rows="10"
-          :rowsPerPageOptions="[5, 10, 20, 50]"
-          dataKey="id"
-          filterDisplay="row"
-          editMode="cell"
-          @cell-edit-complete="onCellEditComplete"
-        >
-          <Column v-for="(field, index) in fields" :header="field.name" :key="'value-' + index">
-            <template #body="{ data }">
-              <ColumnData
-                :data="{
-                  id: 0,
-                  createdAt: new Date(),
-                  fields: [{ name: field.name, value: data[field.name] }],
-                }"
-                :type="field"
-              />
-            </template>
-            <template #editor="{ data }">
-              <ContactListInput
-                :name="field.name"
-                :type="field.type"
-                v-model:modelValue="data[field.name]"
-              />
-            </template>
-          </Column>
-        </DataTable>
+
+          <Tabs
+            :value="activeTab"
+            @update:value="(value) => (activeTab = value as 'error' | 'valid')"
+          >
+            <TabList class="shrink-0">
+              <Tab value="error">
+                <span class="flex items-center gap-2">
+                  <TriangleAlert class="h-4 w-4" />
+                  {{ t('create-contacts.review-error') }}
+                  <Tag severity="danger" :value="errorNb" />
+                </span>
+              </Tab>
+              <Tab value="valid">
+                <span class="flex items-center gap-2">
+                  <CircleCheck class="h-4 w-4" />
+                  {{ t('create-contacts.review-valid') }}
+                  <Tag severity="success" :value="validNb" />
+                </span>
+              </Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel value="error">
+                <div
+                  v-if="errorNb === 0"
+                  class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+                >
+                  <CircleCheck class="h-5 w-5 text-emerald-500" />
+                  {{ t('create-contacts.review-error-empty') }}
+                </div>
+                <div v-else class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                  <ContactReviewCard
+                    v-for="contact in errorContacts"
+                    :key="contact.rowId"
+                    :index="contact.rowId"
+                    :errored="true"
+                    :fields="fields"
+                    :contact="contact.data"
+                    @update:value="(name, value) => onFieldUpdate(contact, name, value)"
+                  />
+                </div>
+              </TabPanel>
+              <TabPanel value="valid">
+                <div
+                  v-if="validNb === 0"
+                  class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+                >
+                  <Users class="h-5 w-5" />
+                  {{ t('create-contacts.review-valid-empty') }}
+                </div>
+                <div v-else class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                  <ContactReviewCard
+                    v-for="contact in validContacts"
+                    :key="contact.rowId"
+                    :index="contact.rowId"
+                    :errored="false"
+                    :fields="fields"
+                    :contact="contact.data"
+                    @update:value="(name, value) => onFieldUpdate(contact, name, value)"
+                  />
+                </div>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </template>
       </div>
     </template>
     <template #footer>
-      <Button severity="success" @click="goToMerge">
-        {{ t('next') }}
-      </Button>
+      <div class="flex w-full items-center justify-between gap-2">
+        <Message v-if="errorNb > 0" severity="warn" variant="simple" size="small" class="min-w-0">
+          {{ t('create-contacts.review-remaining-error', { nb: errorNb }) }}
+        </Message>
+        <span v-else />
+        <Button severity="success" @click="goToMerge">{{ t('next') }}</Button>
+      </div>
     </template>
   </Card>
 </template>
+
 <script setup lang="ts">
-import ColumnData from '@/components/contacts/ColumnData.vue'
-import ContactListInput from '@/components/contacts/ContactListInput.vue'
-import { useAreaStore } from '@/stores/area.store'
+import ContactReviewCard from '@/components/contacts/ContactReviewCard.vue'
 import { DataStorage } from '@/stores/contact/creates/dataStorage'
-import { objectEntries } from '@vueuse/core'
-import { Button, Card, Column, DataTable, Toast, useToast } from 'primevue'
-import { onMounted, ref } from 'vue'
+import { isContactValid } from '@/tools/contactValidation.utils'
+import { CircleCheck, TriangleAlert, Users } from '@lucide/vue'
+import {
+  Button,
+  Card,
+  Message,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Tag,
+  Toast,
+  useToast,
+} from 'primevue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+type ReviewContact = {
+  rowId: number
+  data: Record<string, string>
+}
+
 const { t } = useI18n()
-const area = useAreaStore()
 const toast = useToast()
 const router = useRouter()
 
-const fields = ref<Array<{ name: string; type: string }>>([])
-const data = ref<Array<{ [key: string]: string }>>([])
-const error = ref<Array<{ [key: string]: string }>>([])
+const fields = ref<{ name: string; type: string }[]>([])
+const contacts = ref<ReviewContact[]>([])
+const activeTab = ref<'error' | 'valid'>('error')
+
+const errorContacts = computed(() =>
+  contacts.value.filter((contact) => !isContactValid(fields.value, contact.data)),
+)
+const validContacts = computed(() =>
+  contacts.value.filter((contact) => isContactValid(fields.value, contact.data)),
+)
+
+const totalNb = computed(() => contacts.value.length)
+const errorNb = computed(() => errorContacts.value.length)
+const validNb = computed(() => validContacts.value.length)
 
 onMounted(() => {
   fields.value = DataStorage.getType()
+  contacts.value = DataStorage.getValue().map((data, index) => ({
+    rowId: index,
+    data: { ...data },
+  }))
 
-  const valid: typeof data.value = []
-  const invalid: typeof error.value = []
-
-  DataStorage.getValue().forEach((val) => {
-    //each fields with type error is in error
-    if (
-      fields.value.every((f) => {
-        // if value dosent have this fields, return true. empty is not an error
-        if (typeof val[f.name] === undefined) return true
-        //test regex from contactTypeValidator with type of fields
-        return area.contactTypeValidator?.get(f.type)?.test(val[f.name]!)
-      })
-    ) {
-      valid.push(val)
-    } else {
-      invalid.push(val)
-    }
-  })
-
-  data.value = valid
-  error.value = invalid
+  if (errorNb.value === 0) activeTab.value = 'valid'
 })
+
+function onFieldUpdate(contact: ReviewContact, name: string, value: string) {
+  const wasValid = isContactValid(fields.value, contact.data)
+  contact.data[name] = value
+  const isValid = isContactValid(fields.value, contact.data)
+
+  if (wasValid !== isValid) {
+    toast.add({
+      severity: isValid ? 'success' : 'error',
+      summary: isValid ? t('create-contacts.moved-valid') : t('create-contacts.moved-error'),
+      life: 3000,
+    })
+  }
+}
 
 function goToMerge() {
   //json stringify and parse for avoid proxy creation
   DataStorage.setArray(
-    JSON.parse(JSON.stringify([...data.value, ...error.value])),
+    JSON.parse(JSON.stringify(contacts.value.map((contact) => contact.data))),
     DataStorage.getType(),
   )
 
   router.push({ name: '/user/contact/creates/merge' })
-}
-
-//table action
-function deepEqual(obj1, obj2): boolean {
-  if (obj1 === obj2) return true
-
-  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 == null || obj2 == null) {
-    return false
-  }
-
-  const keys1 = Object.keys(obj1)
-  const keys2 = Object.keys(obj2)
-
-  if (keys1.length !== keys2.length) return false
-
-  for (const key of keys1) {
-    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
-      return false
-    }
-  }
-
-  return true
-}
-
-const onCellEditComplete = (event) => {
-  // newData is new data: [key:string: value: string]
-  const { data: oldData, newData } = event
-
-  data.value = data.value.filter((item) => !deepEqual(item, oldData))
-  error.value = error.value.filter((item) => !deepEqual(item, oldData))
-
-  // update error and data when cell is update.
-  if (
-    objectEntries(newData).every((d) => {
-      if (typeof d[0] != 'string' || !area.fields || !area.contactTypeValidator) return true
-      return area.contactTypeValidator
-        .get(area.fields.find((f) => f.name == d[0])?.type || '')
-        ?.test(d[1])
-    })
-  ) {
-    toast.add({
-      severity: 'success',
-      summary: t('contact-type-valid'),
-      life: 3000,
-    })
-    data.value = [...data.value, newData]
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: t('contact-type-invalid'),
-      life: 3000,
-    })
-    error.value = [...error.value, newData]
-  }
 }
 </script>
