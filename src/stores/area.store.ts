@@ -1,6 +1,9 @@
 import { getArea as fetchAreas } from '@/cloud-functions/areas/getArea'
+import { filedsNumberValue } from '@/cloud-functions/contacts/filedsNumberValue.type'
 import { getContactFields } from '@/cloud-functions/contacts/getFields'
 import { router } from '@/router'
+import { parseRegexPattern } from '@/tools/fetch.utils'
+import { refreshNeeds } from '@/tools/store.utils'
 import type { getAreaFetch } from '@/types/cloud-functions/areas/getArea.type'
 import type { getContactFieldsFetch } from '@/types/cloud-functions/contacts/getContactFields'
 import { StorageSerializers, useStorage } from '@vueuse/core'
@@ -27,10 +30,36 @@ export const useAreaStore = defineStore('area', () => {
   const loading = ref<boolean>(false)
   const errored = ref<boolean>(false)
   const hydratePromise = ref<Promise<StoredSession | null> | null>(null)
+  const NumberValueInFieldCached = ref<{ [name: string]: number }>({})
 
   const areas = computed(() => storeSession.value?.areas ?? [])
   const fields = computed(() => storeSession.value?.fields ?? [])
+  const validator = computed(() => storeSession.value?.validator ?? [])
   const selectedArea = computed(() => storeSession.value?.selectedArea)
+  const primaryFields = computed(() => fields.value.filter((f) => f.primary))
+  const indexedFields = computed(() => fields.value.filter((f) => f.indexed && !f.primary))
+  const otherFields = computed(() => fields.value.filter((f) => !f.primary && !f.indexed))
+
+  let numberFieldsFetchPromise: Promise<void> | undefined = undefined
+  let NumberFieldFetchDate: Date | undefined = undefined
+
+  const fieldsType = computed(() => {
+    const types = new Set(fields.value.map((f) => f.type))
+    return Array.from(types)
+  })
+
+  const contactTypeValidator = computed(() => {
+    const map = new Map<string, RegExp>()
+    for (const [type, raw] of validator.value) {
+      try {
+        const { pattern, flags } = parseRegexPattern(raw)
+        map.set(type, flags ? new RegExp(pattern, flags) : new RegExp(pattern))
+      } catch {
+        map.set(type, /.*/)
+      }
+    }
+    return map
+  })
 
   async function loadFields(areaId: number) {
     const fieldsRequest = getContactFields(areaId)
@@ -94,7 +123,7 @@ export const useAreaStore = defineStore('area', () => {
     return nextSession
   }
 
-  async function hydrate() {
+  async function hydrate(force = false) {
     if (hasCompleteSession(storeSession.value)) {
       const nextSelectedArea = storeSession.value.areas.find(
         (area) => area.id === storeSession.value?.selectedArea,
@@ -118,7 +147,10 @@ export const useAreaStore = defineStore('area', () => {
           ...storeSession.value,
           fields: fieldsResult.fetchedFields,
         }
-      } else if (storeSession.value.fields.some((field) => field.area !== nextSelectedArea.id)) {
+      } else if (
+        force ||
+        storeSession.value.fields.some((field) => field.area !== nextSelectedArea.id)
+      ) {
         const fieldsResult = await loadFields(nextSelectedArea.id)
 
         if (!fieldsResult) {
@@ -188,15 +220,59 @@ export const useAreaStore = defineStore('area', () => {
     return area
   }
 
+  function getNumberValueRef(name: string, otherFields?: Array<string>) {
+    fetchNumberValues(name, otherFields)
+    return computed(() => NumberValueInFieldCached.value[name] ?? 0)
+  }
+
+  //MARK: private
+  async function fetchNumberValues(name: string, otherFields?: Array<string>) {
+    const safeOtherFields = Array.isArray(otherFields) ? otherFields : []
+    const requestedFields = Array.from(new Set([name, ...safeOtherFields]))
+
+    const cachedKeys = Object.keys(NumberValueInFieldCached.value)
+    const missingFields = requestedFields.filter((field) => !cachedKeys.includes(field))
+
+    if (numberFieldsFetchPromise) return numberFieldsFetchPromise
+    if (missingFields.length === 0 && !refreshNeeds(NumberFieldFetchDate)) return
+
+    numberFieldsFetchPromise = (async () => {
+      try {
+        const allFields = Array.from(new Set([...cachedKeys, ...requestedFields]))
+
+        const nbValFetch = filedsNumberValue({ field: allFields.join(',') })
+        await nbValFetch.loadingPromise.value
+
+        const nb = nbValFetch.data.value
+        if (!nb) return
+
+        NumberFieldFetchDate = new Date()
+        nb.forEach(({ name, count }) => (NumberValueInFieldCached.value[name] = count))
+      } finally {
+        numberFieldsFetchPromise = undefined
+      }
+    })()
+
+    return numberFieldsFetchPromise
+  }
+
   void hydrate()
 
   return {
+    areas,
+    fields,
     loading,
     errored,
-    areas,
+    validator,
+    fieldsType,
+    otherFields,
+    indexedFields,
+    primaryFields,
+    contactTypeValidator,
     getArea,
-    fields,
+    hydrate,
     getAreaField,
     setSelectedArea,
+    getNumberValueRef,
   }
 })
