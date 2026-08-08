@@ -32,14 +32,24 @@ const isCreateButtonDisabled = computed(() => {
   return Object.values(values.value).every((v) => !v) || Object.values(errors.value).some((v) => v)
 })
 
-fields.value.forEach((field) => {
-  if (!(field.id in values.value)) {
-    values.value[field.id] = ''
-  }
-  if (!(field.id in errors.value)) {
-    errors.value[field.id] = false
-  }
-})
+watch(
+  () => area.fields,
+  (newFields) => {
+    const newValues = { ...values.value }
+    const newErrors = { ...errors.value }
+    newFields.forEach((field) => {
+      if (!(field.id in newValues)) {
+        newValues[field.id] = ''
+      }
+      if (!(field.id in newErrors)) {
+        newErrors[field.id] = false
+      }
+    })
+    values.value = newValues
+    errors.value = newErrors
+  },
+  { immediate: true },
+)
 
 const buttonItems = computed(() => [
   {

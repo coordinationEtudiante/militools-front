@@ -70,4 +70,18 @@ const mostProbableValue = (val1: string, val2: string) => {
   return nd2.length > nd1.length ? nd2 : nd1
 }
 
-export { extremTrim, mostProbableValue }
+function clearEmail(email: string): string {
+  email = email.trim()
+  if (email === '?' || email === '-' || email === '.' || email === '--' || email === '#ERROR!') {
+    return ''
+  }
+
+  if (email.length < 4) {
+    return ''
+  }
+
+  email = email.replaceAll(';', '.')
+  return email
+}
+
+export { extremTrim, mostProbableValue, clearEmail }

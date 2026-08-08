@@ -32,7 +32,7 @@
         <div
           class="flex w-max flex-row gap-2 rounded-lg border-2 p-2"
           :class="
-            (files?.length ?? 0 >= 1)
+            (files?.length ?? 0) >= 1
               ? 'border-sky-500'
               : !errored
                 ? 'border-amber-500'
@@ -147,6 +147,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CreateField from '@/components/contacts/CreateField.vue'
+import { clearEmail } from '@/tools/string.utils'
 
 const toast = useToast()
 const { t } = useI18n()
@@ -295,9 +296,19 @@ const phoneFieldNames = [
     messages['validator.phone-number'],
   ]),
 ]
+const emailFieldNames = [
+  'mail',
+  'email',
+  'mel',
+  ...localeMessages.flatMap((messages) => [
+    messages['validator.email'],
+    messages['validator.email-adress'],
+  ]),
+]
 
 const clearableField = (field: CsvField) =>
-  phoneFieldNames.includes((field.newName ?? field.name).toLowerCase())
+  phoneFieldNames.includes((field.newName ?? field.name).toLowerCase()) ||
+  emailFieldNames.includes((field.newName ?? field.name).toLowerCase())
 
 const clearField = (field: CsvField) => {
   if (!clearableField(field)) return
@@ -305,7 +316,10 @@ const clearField = (field: CsvField) => {
   const nbPreviousError = typeErrors.value[field.name] ?? 0
 
   csvValue.value.forEach((v) => {
-    if (v[field.name]) v[field.name] = clearPhone(v[field.name]!)
+    const isPhone = phoneFieldNames.includes((field.newName ?? field.name).toLowerCase())
+    const isMail = emailFieldNames.includes((field.newName ?? field.name).toLowerCase())
+    if (v[field.name] && (isPhone || isMail))
+      v[field.name] = isPhone ? clearPhone(v[field.name]!) : clearEmail(v[field.name]!)
   })
 
   onTypeChange(field, field.type)
@@ -324,17 +338,21 @@ const clearField = (field: CsvField) => {
 //// send \\\\
 
 function goToReview() {
-  if (csvFields.value.every((f) => typeof f.type !== 'string'))
+  if (!allTypeCompleted.value) {
     toast.add({
       severity: 'error',
       summary: t('not-all-fields-define'),
       life: 3000,
     })
+    return
+  }
 
   DataStorage.setArray(
     csvValue.value.map((v) => {
       return Object.fromEntries(
-        csvFields.value.map((f) => (v[f.name] ? [f.newName ?? f.name, v[f.name]] : [])),
+        csvFields.value
+          .map((f) => (v[f.name] ? [f.newName ?? f.name, v[f.name]] : []))
+          .filter((entry): entry is [string, string] => entry.length === 2),
       )
     }),
     csvFields.value.map((f) => {

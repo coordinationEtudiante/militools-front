@@ -5,6 +5,7 @@ export interface GetContactOptions {
   filters?: { name: string; value: string }[]
   fields?: string[]
   limit?: number
+  offset?: number
   sort?: { field: 'id' | 'createdAt' | 'updatedAt'; desc?: boolean }[]
 }
 
@@ -21,8 +22,12 @@ function buildQuery(options?: GetContactOptions): GetContactsQuery {
     query.fields = options.fields.join(',')
   }
 
-  if (options.limit) {
+  if (options.limit !== undefined) {
     query.limit = options.limit.toString()
+  }
+
+  if (options.offset !== undefined) {
+    query.offset = options.offset.toString()
   }
 
   if (options.sort?.length) {
@@ -33,9 +38,13 @@ function buildQuery(options?: GetContactOptions): GetContactsQuery {
 }
 
 export function getContacts(options?: GetContactOptions, immediate = true) {
-  return reactiveFetch(':area/contact/getContacts', {
+  const result = reactiveFetch(':area/contact/getContacts', {
     query: buildQuery(options),
     method: 'GET',
     immediate,
   })
+  return {
+    ...result,
+    doFetch: (next?: GetContactOptions) => result.doFetch(buildQuery(next ?? options)),
+  }
 }

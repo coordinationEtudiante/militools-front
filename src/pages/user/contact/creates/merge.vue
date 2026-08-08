@@ -41,30 +41,29 @@
             <CircleCheck class="h-5 w-5 text-emerald-500" />
             {{ t('no-duplicate') }}
           </div>
-          <div v-else class="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
-            <Button
+          <div v-else class="flex flex-1 flex-col gap-2 overflow-auto">
+            <button
               v-for="(dup, i) in duplicates"
               :key="dup.index"
-              class="w-full"
-              :class="{ 'ring-2 ring-blue-300': selectedIdx === i }"
-              severity="secondary"
+              type="button"
+              class="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-blue-300"
+              :class="
+                selectedIdx === i
+                  ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-300'
+                  : 'border-transparent bg-gray-100 hover:bg-gray-200'
+              "
               @click="selectDuplicate(i)"
             >
-              <div class="flex w-full flex-wrap items-center justify-between gap-2">
-                <span class="flex min-w-0 flex-col items-start">
-                  <span class="truncate text-sm font-semibold">
-                    {{ summaryOf(dup) || `#${dup.index}` }}
-                  </span>
-                  <span class="text-xs text-gray-500">
-                    {{ t('duplication-index', { index: dup.index + 1 }) }}
-                  </span>
+              <span class="flex min-w-0 flex-col">
+                <span class="truncate text-sm font-semibold">
+                  {{ dup.summary || `#${dup.index}` }}
                 </span>
-                <Tag
-                  :severity="statusSeverity(dup.status)"
-                  :value="t(`duplication.${dup.status}`)"
-                />
-              </div>
-            </Button>
+                <span class="text-xs text-gray-500">
+                  {{ t('duplication-index', { index: dup.index + 1 }) }}
+                </span>
+              </span>
+              <Tag :severity="statusSeverity(dup.status)" :value="t(`duplication.${dup.status}`)" />
+            </button>
           </div>
         </template>
       </Card>
@@ -98,10 +97,10 @@
             <Users class="h-5 w-5" />
             {{ t('no-duplicate') }}
           </div>
-          <div v-else class="min-h-0 flex-1 overflow-auto">
+          <div v-else class="flex flex-1 flex-col gap-2 overflow-auto md:gap-0">
             <!-- desktop header -->
             <div
-              class="hidden bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
+              class="bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
             >
               <div>{{ t('field') }}</div>
               <div>{{ t('local-version') }}</div>
@@ -175,6 +174,8 @@ const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
 
+const CHUNK_SIZE = 100
+
 const types = ref<{ name: string; type: string }[]>([])
 const typeByName = ref<Map<string, string>>(new Map())
 const values = ref<Record<string, string>[]>([])
@@ -185,13 +186,39 @@ const nbDuplicate = ref<number>()
 const errored = ref(false)
 const loading = ref(true)
 
+const progressToast = ref<
+  | { severity: string; summary: string; detail: string; sticky: boolean; closable: boolean }
+  | undefined
+>()
+
+function showProgress(detail: string) {
+  if (!progressToast.value) {
+    progressToast.value = {
+      severity: 'info',
+      summary: t('merge.checking'),
+      detail,
+      sticky: true,
+      closable: false,
+    }
+    toast.add(progressToast.value)
+  } else {
+    progressToast.value.detail = detail
+  }
+}
+
+function finishProgress() {
+  if (!progressToast.value) return
+  toast.remove(progressToast.value)
+  progressToast.value = undefined
+}
+
 const selectedDuplicate = computed(() => duplicates.value[selectedIdx.value])
 const selectedLocal = computed(() => values.value[selectedDuplicate.value?.index ?? -1] ?? {})
 const unresolvedCount = computed(
   () => duplicates.value.filter((d) => d.status === 'to-resolved').length,
 )
 const primaryFieldNames = computed(() => area.primaryFields.map((f) => f.name))
-const selectedTitle = computed(() => summaryOf(selectedDuplicate.value))
+const selectedTitle = computed(() => selectedDuplicate.value?.summary ?? '')
 
 function buildMergeFields(dup: MergeDuplicate, local: Record<string, string>): MergeField[] {
   const serverBy = new Map(dup.duplicateOf.map((d) => [d.name, d]))
@@ -217,22 +244,25 @@ function buildMergeFields(dup: MergeDuplicate, local: Record<string, string>): M
 
 function isAutoResolved(dup: MergeDuplicate): boolean {
   const local = values.value[dup.index] ?? {}
-  return buildMergeFields(dup, local).every((f) => !(f.local && f.server) || f.autoResolved)
+  return dup.duplicateOf.every((serverField) => {
+    const localValue = local[serverField.name]
+    if (!localValue || !serverField.value) return true
+    return extremTrim(localValue) === extremTrim(serverField.value)
+  })
 }
 
-function selectDuplicate(i: number) {
-  selectedIdx.value = i
-  mergeFields.value = buildMergeFields(selectedDuplicate.value, selectedLocal.value)
-}
-
-function summaryOf(dup?: MergeDuplicate): string {
-  if (!dup) return ''
+function buildSummary(dup: MergeDuplicate): string {
   const local = values.value[dup.index] ?? {}
   const server = new Map(dup.duplicateOf.map((d) => [d.name, d.value]))
   return primaryFieldNames.value
     .map((n) => local[n] || server.get(n) || '')
     .filter(Boolean)
     .join(' · ')
+}
+
+function selectDuplicate(i: number) {
+  selectedIdx.value = i
+  mergeFields.value = buildMergeFields(selectedDuplicate.value, selectedLocal.value)
 }
 
 function statusSeverity(status: MergeDuplicate['status']) {
@@ -286,18 +316,18 @@ function saveAndNext() {
 }
 
 function goToRecap() {
-  //json stringify and parse for avoid proxy creation
   const exclude = new Set(duplicates.value.map((d) => d.index))
   DataStorage.setArray(
-    JSON.parse(
-      JSON.stringify(cleanContactData(values.value.filter((_, index) => !exclude.has(index)))),
-    ),
+    cleanContactData(values.value.filter((_, index) => !exclude.has(index))),
     DataStorage.getType(),
   )
   DataStorage.setEdit(
     duplicates.value.map((d) => ({
       contactId: d.remoteIndex,
-      data: d.duplicateOf,
+      data: d.duplicateOf.map((field) => ({
+        ...field,
+        value: values.value[d.index]?.[field.name] ?? field.value,
+      })),
     })),
   )
 
@@ -310,17 +340,12 @@ watch(
     const dup = selectedDuplicate.value
     if (!dup) return
 
-    const finals = new Map(list.map((f) => [f.name, f.final]))
-    dup.duplicateOf = dup.duplicateOf.map((d) => ({
-      ...d,
-      value: finals.get(d.name) ?? d.value,
-    }))
-
     const local = { ...values.value[dup.index] }
-    list.forEach((f) => {
+    for (const f of list) {
       local[f.name] = f.final
-    })
+    }
     values.value[dup.index] = local
+    dup.summary = buildSummary(dup)
   },
   { deep: true },
 )
@@ -332,14 +357,33 @@ onMounted(async () => {
     typeByName.value = new Map(types.value.map((t) => [t.name, t.type]))
     values.value = cleanContactData(DataStorage.getValue())
 
-    const fetch = await fetchResource(':area/contact/getDuplicate', {
-      body: { data: FieldsToIds(values.value) },
-    })
+    const allValues = values.value
+    const allDuplicates: MergeDuplicate[] = []
+    let totalDuplicate = 0
 
-    nbDuplicate.value = fetch.nbDuplicate
-    duplicates.value = fetch.duplicates.map((d) => ({ ...d, status: 'to-resolved' }))
+    for (let i = 0; i < allValues.length; i += CHUNK_SIZE) {
+      const chunk = allValues.slice(i, i + CHUNK_SIZE)
+      showProgress(`${i + 1}/${allValues.length}`)
+
+      const fetch = await fetchResource(':area/contact/getDuplicate', {
+        body: { data: FieldsToIds(chunk) },
+      })
+
+      totalDuplicate += fetch.nbDuplicate
+      allDuplicates.push(
+        ...fetch.duplicates.map((d) => ({
+          ...d,
+          index: d.index + i,
+          status: 'to-resolved' as const,
+        })),
+      )
+    }
+
+    nbDuplicate.value = totalDuplicate
+    duplicates.value = allDuplicates
 
     duplicates.value.forEach((d) => {
+      d.summary = buildSummary(d)
       if (isAutoResolved(d)) d.status = 'auto-resolved'
     })
 
@@ -351,6 +395,7 @@ onMounted(async () => {
     errored.value = true
     throw e
   } finally {
+    finishProgress()
     loading.value = false
   }
 })

@@ -64,7 +64,14 @@ export async function fetchRequest<T = unknown>(
     const response = await fetch(new URL(`${endpoint}`, getBaseUrl()), requestOptions)
 
     if (!response.ok) {
-      throw new fetchError(response.statusText, {
+      let message = response.statusText
+      try {
+        const body = await response.json()
+        if (body?.message) message = body.message
+      } catch {
+        // keep the default statusText when the body is not JSON
+      }
+      throw new fetchError(message, {
         status: response.status || 400,
       })
     }
@@ -151,12 +158,12 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
-  const doFetch = () => {
+  const doFetch = (queryOverride?: CloudFunctionQuery<TRoute>) => {
     error.value = undefined
     errorCode.value = undefined
     isLoading.value = true
     loadingPromise.value = fetchRequest<CloudFunctionResponse<TRoute>>(
-      `${resolvedRoute}${buildQueryString(query)}`,
+      `${resolvedRoute}${buildQueryString({ ...query, ...queryOverride })}`,
       {
         ...requestOptions,
         method: resolvedMethod,

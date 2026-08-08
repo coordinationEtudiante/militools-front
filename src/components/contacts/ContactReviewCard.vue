@@ -3,6 +3,7 @@ import ContactListInput from '@/components/contacts/ContactListInput.vue'
 import { isFieldValueValid } from '@/tools/contactValidation.utils'
 import { TriangleAlert, Users } from '@lucide/vue'
 import { Tag } from 'primevue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -18,8 +19,22 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const drafts = ref<Record<string, string>>({})
+
 const isFieldError = (field: { name: string; type: string }) =>
   !isFieldValueValid(field, props.contact[field.name])
+
+const fieldValue = (field: { name: string; type: string }) =>
+  drafts.value[field.name] ?? props.contact[field.name] ?? ''
+
+function onInput(fieldName: string, value: string) {
+  drafts.value[fieldName] = value
+}
+
+function commitField(fieldName: string) {
+  if (drafts.value[fieldName] === undefined) return
+  emit('update:value', fieldName, drafts.value[fieldName])
+}
 </script>
 
 <template>
@@ -40,7 +55,12 @@ const isFieldError = (field: { name: string; type: string }) =>
         :severity="errored ? 'danger' : 'success'"
         :value="errored ? t('error') : t('create-contacts.valid')"
         :icon="errored ? 'pi pi-exclamation-triangle' : 'pi pi-check'"
-      />
+      >
+        <template #icon>
+          <TriangleAlert v-if="errored" />
+          <CircleCheck v-else />
+        </template>
+      </Tag>
     </div>
 
     <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -63,8 +83,9 @@ const isFieldError = (field: { name: string; type: string }) =>
         <ContactListInput
           :name="field.name"
           :type="field.type"
-          :modelValue="contact[field.name]"
-          @update:modelValue="(value) => emit('update:value', field.name, value)"
+          :modelValue="fieldValue(field)"
+          @update:modelValue="(value) => onInput(field.name, value)"
+          @commit="commitField(field.name)"
         />
       </div>
     </div>

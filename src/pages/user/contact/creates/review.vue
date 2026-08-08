@@ -72,6 +72,7 @@
           </div>
 
           <Tabs
+            lazy
             :value="activeTab"
             @update:value="(value) => (activeTab = value as 'error' | 'valid')"
           >
@@ -174,6 +175,7 @@ import { useRouter } from 'vue-router'
 type ReviewContact = {
   rowId: number
   data: Record<string, string>
+  valid: boolean
 }
 
 const { t } = useI18n()
@@ -184,12 +186,8 @@ const fields = ref<{ name: string; type: string }[]>([])
 const contacts = ref<ReviewContact[]>([])
 const activeTab = ref<'error' | 'valid'>('error')
 
-const errorContacts = computed(() =>
-  contacts.value.filter((contact) => !isContactValid(fields.value, contact.data)),
-)
-const validContacts = computed(() =>
-  contacts.value.filter((contact) => isContactValid(fields.value, contact.data)),
-)
+const errorContacts = computed(() => contacts.value.filter((contact) => !contact.valid))
+const validContacts = computed(() => contacts.value.filter((contact) => contact.valid))
 
 const totalNb = computed(() => contacts.value.length)
 const errorNb = computed(() => errorContacts.value.length)
@@ -200,29 +198,29 @@ onMounted(() => {
   contacts.value = DataStorage.getValue().map((data, index) => ({
     rowId: index,
     data: { ...data },
+    valid: isContactValid(fields.value, data),
   }))
 
   if (errorNb.value === 0) activeTab.value = 'valid'
 })
 
 function onFieldUpdate(contact: ReviewContact, name: string, value: string) {
-  const wasValid = isContactValid(fields.value, contact.data)
+  const wasValid = contact.valid
   contact.data[name] = value
-  const isValid = isContactValid(fields.value, contact.data)
+  contact.valid = isContactValid(fields.value, contact.data)
 
-  if (wasValid !== isValid) {
+  if (wasValid !== contact.valid) {
     toast.add({
-      severity: isValid ? 'success' : 'error',
-      summary: isValid ? t('create-contacts.moved-valid') : t('create-contacts.moved-error'),
+      severity: contact.valid ? 'success' : 'error',
+      summary: contact.valid ? t('create-contacts.moved-valid') : t('create-contacts.moved-error'),
       life: 3000,
     })
   }
 }
 
 function goToMerge() {
-  //json stringify and parse for avoid proxy creation
   DataStorage.setArray(
-    JSON.parse(JSON.stringify(contacts.value.map((contact) => contact.data))),
+    contacts.value.map((contact) => contact.data),
     DataStorage.getType(),
   )
 

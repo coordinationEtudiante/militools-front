@@ -30,6 +30,7 @@ export type GetContactsQuery = {
   filters?: string
   fields?: string
   limit?: string
+  offset?: string
   sort?: string
 }
 

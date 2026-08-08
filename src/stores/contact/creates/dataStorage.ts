@@ -1,6 +1,24 @@
+import { toRaw } from 'vue'
+
 let value: Array<{ [key: string]: string }> = []
 let type: Array<{ name: string; type: string }> = []
 let edit: Array<{ contactId: number; data: Array<{ id: number; value: string }> }> = []
+
+function deepPlain<T>(data: T): T {
+  const raw = toRaw(data)
+  if (Array.isArray(raw)) {
+    return raw.map((item) => deepPlain(item)) as unknown as T
+  }
+  if (raw !== null && typeof raw === 'object') {
+    const result: Record<string, unknown> = {}
+    for (const key of Object.keys(raw)) {
+      result[key] = deepPlain((raw as Record<string, unknown>)[key])
+    }
+    return result as T
+  }
+  return raw as T
+}
+
 export const DataStorage = {
   setArray(
     newData: Array<{ [key: string]: string }>,
@@ -14,19 +32,12 @@ export const DataStorage = {
       return
     }
 
-    try {
-      // Convert Proxy or unexpected structures to plain objects
-      value = JSON.parse(JSON.stringify(newData))
-      type = JSON.parse(JSON.stringify(newType))
-    } catch (error) {
-      console.error('Failed to set data in DataStorage:', error)
-    }
-    value = newData
-    type = newType
+    value = deepPlain(newData)
+    type = deepPlain(newType)
   },
 
   setEdit(newEdit: Array<{ contactId: number; data: Array<{ id: number; value: string }> }>) {
-    edit = newEdit
+    edit = deepPlain(newEdit)
   },
 
   getValue() {
@@ -40,6 +51,7 @@ export const DataStorage = {
   clear() {
     value = []
     type = []
+    edit = []
   },
 
   getEdit() {

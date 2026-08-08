@@ -5,6 +5,8 @@
     fluid
     :inputProps="{ autocomplete: true }"
     :invalid="errored"
+    @keydown.enter="commit"
+    @blur="commit"
   />
   <AutoComplete
     v-else
@@ -12,6 +14,8 @@
     fluid
     @complete="searchFieldValue"
     @option-select="onSelect"
+    @keydown.enter="commit"
+    @blur="commit"
     :suggestions="suggestions.map(formatSugestion)"
     :invalid="errored"
     v-tooltip="errored ? t('validation.explanation', { validator: validatorSource }) : false"
@@ -41,6 +45,7 @@ const emit = defineEmits<{
     }[],
   ]
   error: [isError: boolean]
+  commit: []
 }>()
 
 const { t } = useI18n()
@@ -68,22 +73,26 @@ const significance = computed(() => {
 const model = computed({
   get: () => props.modelValue ?? '',
   set: (val: string) => {
+    committed.value = false
     emit('update:modelValue', val)
   },
 })
+
+const committed = ref(false)
 
 const validator = computed(() => area.contactTypeValidator?.get(props.type))
 const validatorSource = computed(() => validator.value ?? /.*/)
 
 const errored = computed(() => {
-  if (model.value == '') return false
+  if (!committed.value || model.value == '') return false
 
-  if (!validatorSource.value.test(model.value)) {
-    return true
-  }
-
-  return false
+  return !validatorSource.value.test(model.value)
 })
+
+function commit() {
+  committed.value = true
+  emit('commit')
+}
 
 const formatSugestion = (sugestion: {
   output: string
@@ -99,6 +108,7 @@ const formatSugestion = (sugestion: {
 async function onSelect(event: AutoCompleteOptionSelectEvent) {
   const selectedOutput = event.value.split(' -> ').at(0) ?? ''
   emit('update:modelValue', selectedOutput)
+  commit()
 
   if (significance.value === 'other') return
   //search contact with id of this search
