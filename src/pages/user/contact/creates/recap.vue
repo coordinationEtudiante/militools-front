@@ -35,12 +35,7 @@
             />
           </div>
         </template>
-        <Column
-          field="message"
-          :header="t('reason')"
-          :exportHeader="t('reason')"
-          sortable
-        />
+        <Column field="message" :header="t('reason')" :exportHeader="t('reason')" sortable />
         <Column
           v-for="field in errorColumns"
           :key="field"
@@ -60,6 +55,7 @@
 import { fetchError } from '@/errors/fetch.error'
 import { useAreaStore } from '@/stores/area.store'
 import { DataStorage } from '@/stores/contact/creates/dataStorage'
+import { usePermStore } from '@/stores/perm.store'
 import { FieldsToIds } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
 import { Button, Card, Column, DataTable, Message, Toast, useToast } from 'primevue'
@@ -69,8 +65,16 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const area = useAreaStore()
 const toast = useToast()
+const { getPerms } = usePermStore()
 
 const CHUNK_SIZE = 100
+
+getPerms([
+  ':area/contact/creates',
+  ':area/contact/edits',
+  ':area/contact/getContactFields',
+  ':area/contact/getDuplicate',
+])
 
 const error = ref<boolean | null>(null)
 const errorMessage = ref<string>()

@@ -153,6 +153,7 @@
 <script setup lang="ts">
 import ContactReviewCard from '@/components/contacts/ContactReviewCard.vue'
 import { DataStorage } from '@/stores/contact/creates/dataStorage'
+import { usePermStore } from '@/stores/perm.store'
 import { isContactValid } from '@/tools/contactValidation.utils'
 import { CircleCheck, TriangleAlert, Users } from '@lucide/vue'
 import {
@@ -181,6 +182,14 @@ type ReviewContact = {
 const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
+const { getPerms } = usePermStore()
+
+getPerms([
+  ':area/contact/creates',
+  ':area/contact/edits',
+  ':area/contact/getContactFields',
+  ':area/contact/getDuplicate',
+])
 
 const fields = ref<{ name: string; type: string }[]>([])
 const contacts = ref<ReviewContact[]>([])

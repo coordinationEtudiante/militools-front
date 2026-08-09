@@ -73,7 +73,12 @@
             <th>{{ t('column-number-error') }}</th>
             <th class="flex items-center justify-center">
               {{ t('field') }}
-              <Button severity="secondary" text @click="toggleModalCreateField">
+              <Button
+                severity="secondary"
+                text
+                @click="toggleModalCreateField"
+                v-if="createFieldPerm"
+              >
                 <CirclePlus />
               </Button>
             </th>
@@ -148,15 +153,25 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CreateField from '@/components/contacts/CreateField.vue'
 import { clearEmail } from '@/tools/string.utils'
+import { usePermStore } from '@/stores/perm.store'
 
 const toast = useToast()
 const { t } = useI18n()
 const area = useAreaStore()
 const router = useRouter()
+const { getPerms, getPerm } = usePermStore()
 
 const loading = ref(false)
 const errored = ref(false)
 
+getPerms([
+  ':area/contact/creates',
+  ':area/contact/edits',
+  ':area/contact/getContactFields',
+  ':area/contact/getDuplicate',
+])
+
+const createFieldPerm = getPerm(':area/contact/createContactFields', false)
 //// file dialog \\\\
 
 const { files, open, reset, onChange } = useFileDialog({

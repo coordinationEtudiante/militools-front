@@ -6,8 +6,10 @@ import { Button, Column, DataTable, InputText } from 'primevue'
 import type { DataTableSortEvent, DataTableSortMeta } from 'primevue/datatable'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { usePermStore } from '@/stores/perm.store'
 
 const { t } = useI18n()
+const { getPerm, getPerms } = usePermStore()
 
 interface FlatContact {
   id: number
@@ -32,6 +34,17 @@ const { isLoading, data } = result
 const contacts = computed(() => data.value?.value ?? [])
 const fieldDefs = computed(() => data.value?.fields ?? [])
 const nbVal = computed(() => data.value?.number ?? 0)
+
+const isCreatesPerm = getPerms(
+  [
+    ':area/contact/creates',
+    ':area/contact/edits',
+    ':area/contact/getContactFields',
+    ':area/contact/getDuplicate',
+  ],
+  false,
+)
+const isCreatePerm = getPerm(':area/contact/create', false)
 
 const flatContacts = computed<FlatContact[]>(() =>
   contacts.value.map((c) => {
@@ -106,10 +119,10 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
-          <RouterLink to="/user/contact/create">
+          <RouterLink to="/user/contact/create" v-if="isCreatePerm">
             <Button severity="contrast">{{ t('create-one') }}</Button>
           </RouterLink>
-          <RouterLink to="/user/contact/creates/">
+          <RouterLink to="/user/contact/creates/" v-if="isCreatesPerm">
             <Button severity="contrast">{{ t('import-file') }}</Button>
           </RouterLink>
           <Button severity="secondary" outlined :disabled="!selectedContacts.length">

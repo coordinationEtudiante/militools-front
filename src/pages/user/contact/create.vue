@@ -10,11 +10,20 @@ import { useToast } from 'primevue/usetoast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CirclePlus } from '@lucide/vue'
+import { usePermStore } from '@/stores/perm.store'
 
 const { t } = useI18n()
 const toast = useToast()
 
 const area = useAreaStore()
+const { getPerms } = usePermStore()
+
+getPerms([
+  ':area/contact/creates',
+  ':area/contact/edits',
+  ':area/contact/getContactFields',
+  ':area/contact/getDuplicate',
+])
 
 const fields = computed(() => area.fields)
 

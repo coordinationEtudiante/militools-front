@@ -159,6 +159,7 @@
 import MergeFieldRow from '@/components/contacts/MergeFieldRow.vue'
 import { useAreaStore } from '@/stores/area.store'
 import { DataStorage } from '@/stores/contact/creates/dataStorage'
+import { usePermStore } from '@/stores/perm.store'
 import { FieldsToIds, cleanContactData } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
 import { extremTrim, mostProbableValue } from '@/tools/string.utils'
@@ -173,8 +174,16 @@ const area = useAreaStore()
 const { t } = useI18n()
 const toast = useToast()
 const router = useRouter()
+const { getPerms } = usePermStore()
 
 const CHUNK_SIZE = 100
+
+getPerms([
+  ':area/contact/creates',
+  ':area/contact/edits',
+  ':area/contact/getContactFields',
+  ':area/contact/getDuplicate',
+])
 
 const types = ref<{ name: string; type: string }[]>([])
 const typeByName = ref<Map<string, string>>(new Map())
