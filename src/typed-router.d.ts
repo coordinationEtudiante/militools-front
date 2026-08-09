@@ -79,6 +79,48 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/user/contact/': RouteRecordInfo<
+      '/user/contact/',
+      '/user/contact',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/user/contact/create': RouteRecordInfo<
+      '/user/contact/create',
+      '/user/contact/create',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/user/contact/creates/': RouteRecordInfo<
+      '/user/contact/creates/',
+      '/user/contact/creates',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/user/contact/creates/merge': RouteRecordInfo<
+      '/user/contact/creates/merge',
+      '/user/contact/creates/merge',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/user/contact/creates/recap': RouteRecordInfo<
+      '/user/contact/creates/recap',
+      '/user/contact/creates/recap',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/user/contact/creates/review': RouteRecordInfo<
+      '/user/contact/creates/review',
+      '/user/contact/creates/review',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/user/settings/': RouteRecordInfo<
       '/user/settings/',
       '/user/settings',
@@ -144,6 +186,42 @@ declare module 'vue-router/auto-routes' {
     'src/pages/user/action/create.vue': {
       routes:
         | '/user/action/create'
+      views:
+        | never
+    }
+    'src/pages/user/contact/index.vue': {
+      routes:
+        | '/user/contact/'
+      views:
+        | never
+    }
+    'src/pages/user/contact/create.vue': {
+      routes:
+        | '/user/contact/create'
+      views:
+        | never
+    }
+    'src/pages/user/contact/creates/index.vue': {
+      routes:
+        | '/user/contact/creates/'
+      views:
+        | never
+    }
+    'src/pages/user/contact/creates/merge.vue': {
+      routes:
+        | '/user/contact/creates/merge'
+      views:
+        | never
+    }
+    'src/pages/user/contact/creates/recap.vue': {
+      routes:
+        | '/user/contact/creates/recap'
+      views:
+        | never
+    }
+    'src/pages/user/contact/creates/review.vue': {
+      routes:
+        | '/user/contact/creates/review'
       views:
         | never
     }

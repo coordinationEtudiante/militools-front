@@ -22,6 +22,7 @@ const { t } = useI18n()
 const seed = computed(() => String(userStore.connected ? userStore.user.id : 0))
 const area = computed(() => areaStore.getArea())
 const actionPerm = computed(() => permStore.getPerm(':area/action/list', false))
+const contactPerm = computed(() => permStore.getPerm(':area/contact/getContactFields', false))
 
 const selectedArea = ref(area.value.id)
 const po = ref()
@@ -50,7 +51,7 @@ const goToSetting = () => {
     </div>
     <div class="flex flex-col gap-4">
       <Clapperboard :size="24" @click="router.push('/user')" v-if="actionPerm" />
-      <BookUser :size="24" />
+      <BookUser @click="router.push('/user/contact')" :size="24" v-if="contactPerm" />
       <Gavel :size="24" />
       <Users :size="24" />
     </div>

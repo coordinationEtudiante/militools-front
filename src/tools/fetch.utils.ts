@@ -64,7 +64,14 @@ export async function fetchRequest<T = unknown>(
     const response = await fetch(new URL(`${endpoint}`, getBaseUrl()), requestOptions)
 
     if (!response.ok) {
-      throw new fetchError(response.statusText, {
+      let message = response.statusText
+      try {
+        const body = await response.json()
+        if (body?.message) message = body.message
+      } catch {
+        // keep the default statusText when the body is not JSON
+      }
+      throw new fetchError(message, {
         status: response.status || 400,
       })
     }
@@ -120,7 +127,6 @@ export async function fetchResource<TRoute extends CloudFunctionRoute>(
 ): Promise<CloudFunctionResponse<TRoute>> {
   const { body, query, method, areaId, headers, ...requestOptions } = options
   const resolvedMethod = method ?? (body ? 'POST' : routeMethodMap[route])
-  console.log(route, method)
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
@@ -152,12 +158,12 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
   const resolvedRoute = route.includes(':area')
     ? route.replace(':area', (areaId ?? getAreaId()).toString())
     : route
-  const doFetch = () => {
+  const doFetch = (queryOverride?: CloudFunctionQuery<TRoute>) => {
     error.value = undefined
     errorCode.value = undefined
     isLoading.value = true
     loadingPromise.value = fetchRequest<CloudFunctionResponse<TRoute>>(
-      `${resolvedRoute}${buildQueryString(query)}`,
+      `${resolvedRoute}${buildQueryString({ ...query, ...queryOverride })}`,
       {
         ...requestOptions,
         method: resolvedMethod,
@@ -178,4 +184,18 @@ export function reactiveFetch<TRoute extends CloudFunctionRoute>(
     doFetch()
   }
   return { data, error, loadingPromise, isLoading, errorCode, doFetch }
+}
+
+/**
+ * on http request some regex are transform. this fonction clean alterate regex
+ */
+export function parseRegexPattern(raw: string) {
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('/')) {
+    const lastSlash = trimmed.lastIndexOf('/')
+    if (lastSlash > 0) {
+      return { pattern: trimmed.slice(1, lastSlash), flags: trimmed.slice(lastSlash + 1) }
+    }
+  }
+  return { pattern: trimmed, flags: '' }
 }
