@@ -105,6 +105,7 @@ import MCard from '@/components/MCard.vue'
 import { fetchError } from '@/errors/fetch.error'
 import { useAreaStore } from '@/stores/area.store'
 import { usePermStore } from '@/stores/perm.store'
+import { useSearchCreditStore } from '@/stores/searchCredit.store'
 import { useStatsStore } from '@/stores/stats.store'
 import { fetchResource } from '@/tools/fetch.utils'
 import type { GetContactsResponse } from '@/types/cloud-functions/contacts/getContacts'
@@ -123,6 +124,7 @@ const { t } = useI18n()
 const areaStore = useAreaStore()
 const statsStore = useStatsStore()
 const permStore = usePermStore()
+const searchCreditStore = useSearchCreditStore()
 
 const isAdmin = permStore.getPerm(':area/contact/getContacts') === 'admin'
 
@@ -180,14 +182,18 @@ async function search() {
     .filter(([, value]) => value.length >= 3)
 
   try {
-    const contacts = await fetchResource(':area/contact/getContacts', {
+    const res = await fetchResource(':area/contact/getContacts', {
       query: { filters: validFilters.map((vf) => vf.join(':')).join(',') },
     })
-    contacts.value = contacts.value
-    fields.value = contacts.fields.filter(
+
+    fields.value = res.fields.filter(
       (value, index, self) =>
         index === self.findIndex((t) => t.name === value.name && t.name === value.name),
     )
+
+    contacts.value = res.value
+
+    searchCreditStore.consumeNewCredit()
   } catch (error: unknown) {
     errorCode.value = error instanceof fetchError ? error.status : 400
   }
