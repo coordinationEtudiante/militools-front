@@ -169,5 +169,21 @@
   "aplicate-local": "Appliquer local",
   "aplicate-server": "Appliquer serveur",
   "save-and-next": "Enregistrer et continuer",
-  "abort": "Annuler"
+  "abort": "Annuler",
+  "primary-field": "Clef unique",
+  "indexed-field": "Clef indexé",
+  "other-field": "Autre clef",
+  "send-for-review": "Envoyer pour relecture",
+  "seach-in-nb-field": "🔎 Rechercher parmis {nb} valeurs",
+  "search-log-warn": "cet outils de recherche ne doit pas etre utilisé pour stalker ou Swatter des contact. Pour luter contre cella vous pouvez effectuer seulement {credit} recherche par jour. chauque recherche et loguer, les admin peuvent voir: la date, l'heur et la recherche",
+  "search-on-nb-fields": "rechercher avec {nb} filtres",
+  "search-min-3-lenght": "la longeur minimal pour une recherche est de 3",
+  "search-error-404": "aucun contact trouvé...",
+  "search-error": "erreur lors de la recherche ({code})",
+  "search-result": "{nb} resultats",
+  "new-search": "🧹 nouvelle recherche",
+  "consumed-credit": "vous avez consommer {consumed} sur {total} credit",
+  "remaning-credit": "credit restant",
+  "get-more-credit": "obtenir des credit suplémentaire",
+  "serach-admin": "Vous êtes admin. les limitation de recherche et de nombre de resultat ne s'applique pas."
 }

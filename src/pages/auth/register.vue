@@ -78,7 +78,7 @@ async function createAccount() {
 
 <template>
   <div
-    class="relative m-auto flex flex-col gap-2 overflow-scroll rounded-3xl border border-gray-300 bg-white p-6 sm:p-10"
+    class="relative m-auto flex max-h-fit max-w-fit flex-col gap-2 overflow-scroll rounded-3xl border border-gray-300 bg-white p-6 sm:p-10"
   >
     <h1
       class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance"

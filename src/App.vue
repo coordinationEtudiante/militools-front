@@ -2,17 +2,17 @@
 import MainLayout from '@/layouts/MainLayout.vue'
 import { router } from '@/router'
 import { computed } from 'vue'
-import Sidebar from '@/components/menubar/Sidebar.vue'
 import { RouterView } from 'vue-router'
+import Sidebar from './components/menubar/sidebar.vue'
 
 const isUser = computed(() => router.currentRoute.value.name?.startsWith('/user'))
 </script>
 
 <template>
   <MainLayout class="min-h-full">
-    <template v-if="isUser">
+    <template v-if="isUser" #sidebar>
       <Sidebar />
     </template>
-    <RouterView />
+    <RouterView class="h-full w-full" />
   </MainLayout>
 </template>

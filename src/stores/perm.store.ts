@@ -58,13 +58,17 @@ export const usePermStore = defineStore('perm', () => {
     return routes.some((route) => getPerm(route, redirect))
   }
 
-  function getPerm(route: CloudFunctionRoute, redirect?: boolean) {
+  function getPerm(route: CloudFunctionRoute, redirect?: boolean, levels?: string) {
     if (!hasSession.value) {
       if (redirect) throw router.replace('/403')
       else return false
     }
 
-    const routeEntry = routes.value.find((r) => r.routes === route || r.routes == '/' + route)
+    const routeEntry = routes.value.find(
+      (r) =>
+        (r.routes === route || r.routes == '/' + route) &&
+        (levels !== undefined ? r.level === levels : true),
+    )
 
     if (!routeEntry) {
       if (redirect) throw router.replace({ path: '/403', query: { routes: route } })

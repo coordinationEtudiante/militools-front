@@ -121,6 +121,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/user/contact/search': RouteRecordInfo<
+      '/user/contact/search',
+      '/user/contact/search',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/user/settings/': RouteRecordInfo<
       '/user/settings/',
       '/user/settings',
@@ -222,6 +229,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/user/contact/creates/review.vue': {
       routes:
         | '/user/contact/creates/review'
+      views:
+        | never
+    }
+    'src/pages/user/contact/search.vue': {
+      routes:
+        | '/user/contact/search'
       views:
         | never
     }
