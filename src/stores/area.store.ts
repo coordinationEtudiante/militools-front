@@ -17,6 +17,8 @@ type StoredSession = {
   selectedArea: number
 }
 
+export type FieldsType = StoredSession['fields'][number]
+
 const STORAGE_KEY = 'militools:areas-session'
 
 function hasCompleteSession(session: StoredSession | null): session is StoredSession {
