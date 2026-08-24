@@ -26,9 +26,11 @@ import {
 } from './contacts/getContactFields'
 import { type getContactsFetch, getContactsMethod } from './contacts/getContacts'
 import { getDuplicateMethod, type getDuplicateFetch } from './contacts/getDuplicate.type'
+import { getCreditFetchMethod, type getCreditFetch } from './credit/getCredit.type'
 import { type createImage, createImageMethod } from './image/create.type'
 import { type getPermFetch, getPermFetchMethod } from './perm/getPerm'
 import { type getRouteFetch, getRouteFetchMethod } from './routes/getRoutes.type'
+import { getContactStatsFetchMethod, type getContactStatsFetch } from './stats/contactStats.type'
 
 export type CloudFunctionRouteMap = {
   ':area/action/create': createAction
@@ -37,15 +39,17 @@ export type CloudFunctionRouteMap = {
   ':area/contact/create': createContact
   ':area/contact/createContactFields': createContactFieldsFetch
   ':area/contact/creates': createContactsFetch
+  ':area/contact/edits': editContactFetch
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsFetch
   ':area/contact/getContactById': getContactByIdFetch
   ':area/contact/getContactFields': getContactFieldsFetch
   ':area/contact/getContacts': getContactsFetch
+  ':area/contact/getCredit': getCreditFetch
   ':area/contact/getDuplicate': getDuplicateFetch
-  ':area/image/create': createImage
-  ':area/contact/edits': editContactFetch
-  ':area/routes/getRoutes': getPermFetch
   ':area/contact/getfieldNumberValue': FieldsNumberValueFetch
+  ':area/image/create': createImage
+  ':area/routes/getRoutes': getPermFetch
+  ':area/stats/contactStats': getContactStatsFetch
   '/areas/list': getAreaFetch
   'auth/login': LoginFetch
   'auth/register': RegisterFetch
@@ -59,15 +63,17 @@ export const routeMethodMap = {
   ':area/contact/create': createContactMethod,
   ':area/contact/createContactFields': createContactFieldsMethod,
   ':area/contact/creates': createContactsMethod,
+  ':area/contact/edits': editContactMethod,
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsMethod,
   ':area/contact/getContactById': getContactByIdMethod,
   ':area/contact/getContactFields': getContactFieldsFetchMethod,
   ':area/contact/getContacts': getContactsMethod,
+  ':area/contact/getCredit': getCreditFetchMethod,
   ':area/contact/getDuplicate': getDuplicateMethod,
-  ':area/image/create': createImageMethod,
-  ':area/contact/edits': editContactMethod,
-  ':area/routes/getRoutes': getPermFetchMethod,
   ':area/contact/getfieldNumberValue': FieldsNumberValueMethod,
+  ':area/image/create': createImageMethod,
+  ':area/routes/getRoutes': getPermFetchMethod,
+  ':area/stats/contactStats': getContactStatsFetchMethod,
   '/areas/list': getAreaFetchMethod,
   'auth/login': LoginFetchMethod,
   'auth/register': RegisterFetchMethod,
