@@ -1,14 +1,23 @@
 <template>
-  <MCard
-    :title="t('remaning-credit')"
-    :subtitle="
-      t('consumed-credit', {
-        total,
-        consumed,
-      })
-    "
-    class="flex flex-col gap-1"
-  >
+  <MCard class="flex flex-col gap-1">
+    <template #header>
+      <header class="mb-2 tracking-tighter text-balance text-gray-950">
+        <div class="flex justify-between text-2xl">
+          {{ t('remaning-credit') }}
+          <Button severity="contrast" variant="text">
+            <RotateCw :class="{ 'animate-spin': searchCreditStore.loading }" :size="12" />
+          </Button>
+        </div>
+        <div class="text-xl">
+          {{
+            t('consumed-credit', {
+              total,
+              consumed,
+            })
+          }}
+        </div>
+      </header>
+    </template>
     <div class="flex h-4 w-full rounded-md">
       <div class="h-full rounded-l-md bg-red-700" :style="{ width: regularConsumption }" />
 
@@ -36,6 +45,7 @@ import { useSearchCreditStore } from '@/stores/searchCredit.store'
 import { Button } from 'primevue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RotateCw } from '@lucide/vue'
 
 const { t } = useI18n()
 

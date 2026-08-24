@@ -71,6 +71,7 @@ export const useSearchCreditStore = defineStore('earchCreditStore', () => {
   const totalRemaningCredit = computed(() => totalAvaibleCredit.value - getConsumedCredit.value)
   fetchCredit()
   return {
+    loading,
     getDayCredit,
     getConsumedCredit,
     getAcceptedExtraCredit,
