@@ -33,6 +33,17 @@ export const useSearchCreditStore = defineStore('earchCreditStore', () => {
     loading.value = false
   }
 
+  /**
+   * If a 1/3 of the credits remain, we refresh to make sure we haven't missed any.
+   */
+  function consumeNewCredit() {
+    consumedCredit.value++
+    if (
+      new Date().getTime() - fetchDate.value.getTime() >= 3_600_000 ||
+      (consumedCredit.value * 4) / 3 >= totalAvaibleCredit.value
+    )
+      fetchCredit()
+  }
   // fetch data eatch hours
   const getDayCredit = computed(() => {
     if (new Date().getTime() - fetchDate.value.getTime() >= 3_600_000) fetchCredit()
@@ -58,7 +69,6 @@ export const useSearchCreditStore = defineStore('earchCreditStore', () => {
 
   const totalAvaibleCredit = computed(() => getDayCredit.value + getAcceptedExtraCredit.value)
   const totalRemaningCredit = computed(() => totalAvaibleCredit.value - getConsumedCredit.value)
-
   fetchCredit()
   return {
     getDayCredit,
@@ -69,5 +79,6 @@ export const useSearchCreditStore = defineStore('earchCreditStore', () => {
     totalAvaibleCredit,
     totalRemaningCredit,
     fetchCredit,
+    consumeNewCredit,
   }
 })
