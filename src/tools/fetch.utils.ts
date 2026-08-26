@@ -2,6 +2,7 @@ import { fetchError } from '@/errors/fetch.error'
 import { useAreaStore } from '@/stores/area.store'
 import { useServerStore } from '@/stores/server.store'
 import { useUserStore } from '@/stores/user.store'
+import { router } from '@/router'
 import {
   routeMethodMap,
   type CloudFunctionMethod,
@@ -71,6 +72,15 @@ export async function fetchRequest<T = unknown>(
       } catch {
         // keep the default statusText when the body is not JSON
       }
+
+      if (response.status === 401 || response.status === 403) {
+        const userStore = useUserStore()
+        userStore.clearSession()
+        if (router.currentRoute.value.path !== '/auth/login') {
+          void router.replace('/auth/login')
+        }
+      }
+
       throw new fetchError(message, {
         status: response.status || 400,
       })

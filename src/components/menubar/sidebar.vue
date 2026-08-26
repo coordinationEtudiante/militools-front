@@ -54,7 +54,7 @@ const goToSetting = () => {
         <Dicebear :seed :size="32" v-tooltip="userStore.user.name" />
       </Button>
     </div>
-    <div class="flex gap-4 md:flex-col">
+    <div class="mx-auto flex gap-4 md:flex-col">
       <Clapperboard :size="24" @click="router.push('/user')" v-if="actionPerm" />
       <BookUser @click="router.push('/user/contact')" :size="24" v-if="contactPerm" />
       <UserSearch @click="router.push('/user/contact/search')" :size="24" v-if="searchPerm" />

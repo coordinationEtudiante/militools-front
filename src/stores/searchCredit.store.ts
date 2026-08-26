@@ -28,6 +28,7 @@ export const useSearchCreditStore = defineStore('earchCreditStore', () => {
     } catch (err) {
       console.error('error during request contacts: ' + err)
       errored.value = true
+      fetchDate.value = new Date()
     }
 
     loading.value = false

@@ -51,6 +51,7 @@ export const useStatsStore = defineStore('StatsStore', () => {
     } catch (e) {
       console.error('error during request contacts: ' + e)
       errored.value = true
+      stats.value.fetchDate = new Date()
     }
     loading.value = false
   }

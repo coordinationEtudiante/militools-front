@@ -48,10 +48,14 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  function logout() {
+  function clearSession() {
     session.value = null
     errored.value = false
     loading.value = false
+  }
+
+  function logout() {
+    clearSession()
     redirectToLogin()
   }
 
@@ -62,6 +66,7 @@ export const useUserStore = defineStore('user', () => {
     errored,
     connected,
     login,
+    clearSession,
     logout,
   }
 })

@@ -4,6 +4,7 @@ import { type setActionResponse, setActionResponseMethod } from './actions/setAc
 import { type getAreaFetch, getAreaFetchMethod } from './areas/getArea.type'
 import { type LoginFetch, LoginFetchMethod } from './auth/login.type'
 import { type RegisterFetch, RegisterFetchMethod } from './auth/register.type'
+import { type TestTokenFetch, TestTokenFetchMethod } from './auth/testToken.type'
 import { editContactMethod, type editContactFetch } from './contacts/contactEdits.type'
 import { type createContact, createContactMethod } from './contacts/createContact'
 import {
@@ -53,6 +54,7 @@ export type CloudFunctionRouteMap = {
   '/areas/list': getAreaFetch
   'auth/login': LoginFetch
   'auth/register': RegisterFetch
+  'auth/testToken': TestTokenFetch
   getRoute: getRouteFetch
 }
 
@@ -77,6 +79,7 @@ export const routeMethodMap = {
   '/areas/list': getAreaFetchMethod,
   'auth/login': LoginFetchMethod,
   'auth/register': RegisterFetchMethod,
+  'auth/testToken': TestTokenFetchMethod,
   getRoute: getRouteFetchMethod,
 } as const satisfies {
   [K in CloudFunctionRoute]: CloudFunctionDefinition<K>['method']
