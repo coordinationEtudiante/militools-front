@@ -1,4 +1,4 @@
-import{Tt as e,bn as t,f as n,hn as r,in as i,tn as a,yt as o}from"./vue-i18n-Dd-f5b4D.js";import{N as s}from"./index-CMJl0mgl.js";var c=n.extend({name:`radiobutton`,style:`
+import{Tt as e,bn as t,f as n,hn as r,in as i,tn as a,yt as o}from"./vue-i18n-Dd-f5b4D.js";import{N as s}from"./index-C9KQR3Je.js";var c=n.extend({name:`radiobutton`,style:`
     .p-radiobutton {
         position: relative;
         display: inline-flex;
