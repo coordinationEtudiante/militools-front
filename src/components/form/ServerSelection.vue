@@ -13,7 +13,7 @@
       <Select
         v-model="serverSelection"
         :options="serverOptions"
-        placeholder="Serveur par défaut"
+        :placeholder="t('server-selection.placeholder')"
         :disabled="disabled"
         fluid
       />
