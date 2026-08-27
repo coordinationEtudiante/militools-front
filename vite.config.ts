@@ -6,6 +6,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/',
   plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }), vue(), vueDevTools()],
   resolve: {
     alias: {

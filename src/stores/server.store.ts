@@ -6,14 +6,14 @@ const STORAGE_KEY = 'militools:server-origin'
 
 export function getDefaultServerOrigin() {
   if (typeof window === 'undefined') {
-    return 'https://mt.mpqa.fr/'
+    return 'https://api.mt.mpqa.fr/'
   }
 
   if (import.meta.env.MODE === 'development') {
     return 'http://127.0.0.1:8080/'
   }
 
-  return 'https://mt.mpqa.fr/'
+  return 'https://api.mt.mpqa.fr/'
 }
 
 function normalizeOrigin(origin: string) {
