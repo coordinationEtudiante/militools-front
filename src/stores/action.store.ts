@@ -12,11 +12,11 @@ export const useActionStore = defineStore('action', () => {
   const errorMessage = ref<string | null>(null)
 
   const getParticipatingAction = computed(
-    () => (actions.value.filter((a) => a.awnser !== null) ?? []) as Action[],
+    () => (actions.value.filter((a) => a.awnser === true) ?? []) as Action[],
   )
 
   const getNotParticipatingAction = computed(
-    () => actions.value.filter((a) => a.awnser === null) as Action[],
+    () => actions.value.filter((a) => a.awnser !== true) as Action[],
   )
 
   async function reloadActions(
@@ -43,7 +43,7 @@ export const useActionStore = defineStore('action', () => {
 
   async function setActionResponse(actionId: number, awnser: boolean | null) {
     try {
-      await fetchResource(':area/action/respond', {
+      await fetchResource(':area/action/reply', {
         body: { actionId, awnser },
       })
     } catch (e) {

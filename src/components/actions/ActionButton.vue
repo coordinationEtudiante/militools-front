@@ -1,6 +1,6 @@
 <template>
-  <div class="action-button">
-    <template v-if="act.awnser === null">
+  <div class="flex gap-2">
+    <template v-if="props.action.awnser === null">
       <Button severity="success" @click="participate" :loading="loading">
         {{ t('button.participate') }}
       </Button>
@@ -8,7 +8,7 @@
         {{ t('button.not-participate') }}
       </Button>
     </template>
-    <template v-else-if="act.awnser === false">
+    <template v-else-if="props.action.awnser === false">
       <!-- share ? -->
       <Button severity="success" @click="participate" :loading="loading">
         {{ t('button.its-ok') }}
@@ -25,19 +25,20 @@
 
 <script setup lang="ts">
 import { useActionStore, type Action } from '@/stores/action.store'
+import { Button } from 'primevue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { setActionResponse, loading } = useActionStore()
 
-const { action: act } = defineProps<{
+const props = defineProps<{
   action: Action
 }>()
 
 const participate = () => {
-  setActionResponse(act.id, true)
+  setActionResponse(props.action.id, true)
 }
 const dontParticipate = () => {
-  setActionResponse(act.id, false)
+  setActionResponse(props.action.id, false)
 }
 </script>

@@ -71,13 +71,13 @@ import type { Action } from '@/stores/action.store'
 import { useAreaStore } from '@/stores/area.store'
 import { computed } from 'vue'
 import { usePermStore } from '@/stores/perm.store'
-import ActionButton from './ActionButton.vue'
 import { Tag } from 'primevue'
 import { Megaphone, Calendar, Clock, ImageOff } from '@lucide/vue'
 import { getBaseUrl } from '@/tools/fetch.utils'
 import { useI18n } from 'vue-i18n'
-import MCard from '../MCard.vue'
-import MapAppLink from '../maps/mapAppLink.vue'
+import MCard from '@/components/MCard.vue'
+import MapAppLink from '@/components/maps/mapAppLink.vue'
+import ActionButton from '@/components/actions/ActionButton.vue'
 
 const { action } = defineProps<{
   action: Action
@@ -88,7 +88,7 @@ const { getArea } = useAreaStore()
 const { getPerm } = usePermStore()
 
 const area = computed(() => getArea())
-const replyPerm = computed(() => getPerm(':area/action/respond', false))
+const replyPerm = computed(() => getPerm(':area/action/reply', false))
 
 const imageUrl = computed(() => {
   if (!action.image) return ''

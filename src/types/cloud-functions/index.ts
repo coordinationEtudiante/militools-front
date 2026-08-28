@@ -36,7 +36,7 @@ import { getContactStatsFetchMethod, type getContactStatsFetch } from './stats/c
 export type CloudFunctionRouteMap = {
   ':area/action/create': createAction
   ':area/action/list': listAction
-  ':area/action/respond': setActionResponse
+  ':area/action/reply': setActionResponse
   ':area/contact/create': createContact
   ':area/contact/createContactFields': createContactFieldsFetch
   ':area/contact/creates': createContactsFetch
@@ -61,7 +61,7 @@ export type CloudFunctionRouteMap = {
 export const routeMethodMap = {
   ':area/action/create': createActionMethod,
   ':area/action/list': listActionMethod,
-  ':area/action/respond': setActionResponseMethod,
+  ':area/action/reply': setActionResponseMethod,
   ':area/contact/create': createContactMethod,
   ':area/contact/createContactFields': createContactFieldsMethod,
   ':area/contact/creates': createContactsMethod,

@@ -53,7 +53,7 @@
         </span>
         <span class="flex flex-col gap-1" v-if="imagePerm">
           <Message severity="warn">{{ t('input.image.warn') }}</Message>
-          <span class="flex items-center gap-1">
+          <span class="flex items-center gap-2">
             <label for="action.image">{{ t('input.image') }}</label>
             <FileUpload
               id="action.image"
@@ -67,6 +67,7 @@
             <span v-if="imageName != ''">
               {{ imageName }}
             </span>
+            <Button v-if="imageName != ''" variant="outlined"><X :size="18" /></Button>
           </span>
         </span>
         <span v-else>
@@ -138,16 +139,17 @@
 import { createAction } from '@/cloud-functions/actions/create'
 import { createImage } from '@/cloud-functions/image/create'
 import LocationPicker from '@/components/form/LocationPicker.vue'
-import MCard from '@/components/MCard.vue'
 import Map from '@/components/maps/Map.vue'
+import MCard from '@/components/MCard.vue'
+import { useActionStore } from '@/stores/action.store'
+import { usePermStore } from '@/stores/perm.store'
+import { X } from '@lucide/vue'
+import { Form } from '@primevue/forms'
 import { Button, DatePicker, Fieldset, FileUpload, InputText, Message, Toast } from 'primevue'
 import Editor from 'primevue/editor'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Form } from '@primevue/forms'
-import { usePermStore } from '@/stores/perm.store'
-import { useActionStore } from '@/stores/action.store'
 
 const { t } = useI18n()
 const toast = useToast()
