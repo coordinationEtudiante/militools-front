@@ -177,7 +177,7 @@ watch(
         <Button @click="toggleModalCreateField">{{ t('no-fields-open-modal') }}</Button>
       </div>
 
-      <div class="order-1 flex flex-wrap gap-4">
+      <div class="order-2 flex flex-col flex-wrap gap-4 md:flex-row">
         <ContactCreationInput
           v-for="primaryField in selectedPrimaryFields"
           :key="primaryField.id"
@@ -190,7 +190,7 @@ watch(
         />
       </div>
 
-      <div class="order-3 flex flex-wrap gap-4">
+      <div class="order-4 flex flex-col flex-wrap gap-4 md:flex-row">
         <ContactCreationInput
           v-for="indexedField in selectedIndexedFields"
           :key="indexedField.id"
@@ -203,7 +203,7 @@ watch(
         />
       </div>
 
-      <div class="order-5 flex flex-wrap gap-4">
+      <div class="order-6 flex flex-col flex-wrap gap-4 md:flex-row">
         <ContactCreationInput
           significance="other"
           v-for="otherField in selectedOtherFields"
@@ -223,7 +223,7 @@ watch(
         />
       </div>
 
-      <Divider class="order-2" align="left" type="solid">
+      <Divider class="order-1" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('primary.description') }}</span>
           <Select
@@ -241,7 +241,7 @@ watch(
         </div>
       </Divider>
 
-      <Divider class="order-4" align="left" type="solid">
+      <Divider class="order-3" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('recomended.description') }}</span>
           <Select
@@ -259,7 +259,7 @@ watch(
         </div>
       </Divider>
 
-      <Divider class="order-6" align="left" type="solid">
+      <Divider class="order-5" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('other.description') }}</span>
           <Select

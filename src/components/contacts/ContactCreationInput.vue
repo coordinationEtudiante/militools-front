@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { getAutocompleteFields } from '@/cloud-functions/contacts/getAutocompleteFields'
 import { getContactById } from '@/cloud-functions/contacts/getContactById'
+import InputPhone from '@/components/form/inputPhone.vue'
 import { useAreaStore } from '@/stores/area.store'
-import { AutoComplete, InputText, Message } from 'primevue'
-import { computed, ref, watch } from 'vue'
+import { AutoComplete, InputText, Message, ToggleSwitch } from 'primevue'
+import { computed, ref, watch, type InputHTMLAttributes } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 interface Suggestion {
@@ -36,7 +37,30 @@ const area = useAreaStore()
 const validator = computed(() => area.contactTypeValidator.get(props.type) ?? /.*/)
 const sig = computed(() => props.significance)
 
+const inputAttrs = computed<InputHTMLAttributes | undefined>(() => {
+  if (props.type == 'email') return { type: 'email', inputmode: 'email' }
+  if (props.type == 'integer') return { type: 'text', inputmode: 'numeric' }
+  if (props.type == 'number') return { type: 'text', inputmode: 'decimal' }
+  return undefined
+})
+
 const inputValue = ref<string | Suggestion>(props.modelValue ?? props.defaultValue ?? '')
+const booleanValue = computed({
+  get: () => ['true', '1'].includes(String(inputValue.value)),
+  set: (checked: boolean) => {
+    inputValue.value = checked ? 'true' : 'false'
+  },
+})
+const phoneValue = computed({
+  get: () => String(inputValue.value ?? ''),
+  set: (value: string) => {
+    inputValue.value = value
+  },
+})
+
+function toggleBoolean() {
+  booleanValue.value = !booleanValue.value
+}
 const suggestions = ref<Suggestion[]>([])
 
 watch(
@@ -70,7 +94,8 @@ const displayValue = computed({
 
 const errored = computed(() => {
   if (!displayValue.value) return false
-  return !validator.value.test(displayValue.value.trim())
+  const value = props.type == 'phone' ? displayValue.value.replace(/\s/g, '') : displayValue.value
+  return !validator.value.test(value.trim())
 })
 
 watch(errored, (val) => emit('error', val), { immediate: true })
@@ -133,11 +158,37 @@ async function handleSelect(selected: Suggestion) {
         <i v-else class="pi pi-tag text-xs text-gray-400" v-tooltip="t('other.description')" />
       </div>
 
+      <div
+        v-if="props.type == 'boolean'"
+        role="switch"
+        :aria-checked="booleanValue"
+        :aria-label="name"
+        tabindex="0"
+        class="flex w-fit cursor-pointer items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-(--primary-color)"
+        @keydown.space.prevent="toggleBoolean"
+        @keydown.enter.prevent="toggleBoolean"
+      >
+        <ToggleSwitch
+          v-model="booleanValue"
+          variant="filled"
+          :inputId="String(id)"
+          :tabindex="-1"
+        />
+      </div>
+
+      <InputPhone
+        v-else-if="props.type == 'phone'"
+        v-model:phone="phoneValue"
+        :disabled="false"
+        :invalid="errored"
+      />
+
       <InputText
-        v-if="sig === 'other'"
+        v-else-if="sig === 'other'"
         :id="String(id)"
         v-model="displayValue"
         :invalid="errored"
+        :input-props="inputAttrs"
         fluid
       />
 
@@ -149,6 +200,7 @@ async function handleSelect(selected: Suggestion) {
         optionLabel="output"
         @complete="searchFieldValue"
         :invalid="errored"
+        :input-props="inputAttrs"
         fluid
       >
         <template #option="slotProps">
