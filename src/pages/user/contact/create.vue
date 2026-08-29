@@ -89,7 +89,7 @@ async function createContactFn() {
     }))
 
   try {
-    const result = createContact(formattedValues)
+    const result = createContact(formattedValues, false)
     await result.doFetch()
 
     if (result.errorCode.value && result.errorCode.value !== 200) {
@@ -177,7 +177,53 @@ watch(
         <Button @click="toggleModalCreateField">{{ t('no-fields-open-modal') }}</Button>
       </div>
 
-      <Divider align="left" type="solid">
+      <div class="order-1 flex flex-wrap gap-4">
+        <ContactCreationInput
+          v-for="primaryField in selectedPrimaryFields"
+          :key="primaryField.id"
+          v-bind="primaryField"
+          significance="primary"
+          :modelValue="values[primaryField.id] ?? ''"
+          @update:modelValue="(val) => updateField(primaryField.id, val)"
+          @error="(val) => (errors[primaryField.id] = val)"
+          @update:providedField="updateValues"
+        />
+      </div>
+
+      <div class="order-3 flex flex-wrap gap-4">
+        <ContactCreationInput
+          v-for="indexedField in selectedIndexedFields"
+          :key="indexedField.id"
+          v-bind="indexedField"
+          significance="recomended"
+          :modelValue="values[indexedField.id] ?? ''"
+          @update:modelValue="(val) => updateField(indexedField.id, val)"
+          @error="(val) => (errors[indexedField.id] = val)"
+          @update:providedField="updateValues"
+        />
+      </div>
+
+      <div class="order-5 flex flex-wrap gap-4">
+        <ContactCreationInput
+          significance="other"
+          v-for="otherField in selectedOtherFields"
+          :key="otherField.id"
+          v-bind="otherField"
+          :modelValue="values[otherField.id] ?? ''"
+          @error="(val) => (errors[otherField.id] = val)"
+        />
+      </div>
+
+      <div class="order-7 flex flex-col items-center gap-4 pt-8">
+        <SplitButton
+          :label="creationLabel === 'one' ? t('create-contact') : t('create-contacts')"
+          @click="createContactFn"
+          :model="buttonItems"
+          :disabled="isCreateButtonDisabled || isLoading"
+        />
+      </div>
+
+      <Divider class="order-2" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('primary.description') }}</span>
           <Select
@@ -195,20 +241,7 @@ watch(
         </div>
       </Divider>
 
-      <div class="flex flex-wrap gap-4">
-        <ContactCreationInput
-          v-for="primaryField in selectedPrimaryFields"
-          :key="primaryField.id"
-          v-bind="primaryField"
-          significance="primary"
-          :modelValue="values[primaryField.id] ?? ''"
-          @update:modelValue="(val) => updateField(primaryField.id, val)"
-          @error="(val) => (errors[primaryField.id] = val)"
-          @update:providedField="updateValues"
-        />
-      </div>
-
-      <Divider align="left" type="solid">
+      <Divider class="order-4" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('recomended.description') }}</span>
           <Select
@@ -226,20 +259,7 @@ watch(
         </div>
       </Divider>
 
-      <div class="flex flex-wrap gap-4">
-        <ContactCreationInput
-          v-for="indexedField in selectedIndexedFields"
-          :key="indexedField.id"
-          v-bind="indexedField"
-          significance="recomended"
-          :modelValue="values[indexedField.id] ?? ''"
-          @update:modelValue="(val) => updateField(indexedField.id, val)"
-          @error="(val) => (errors[indexedField.id] = val)"
-          @update:providedField="updateValues"
-        />
-      </div>
-
-      <Divider align="left" type="solid">
+      <Divider class="order-6" align="left" type="solid">
         <div class="flex items-center gap-2">
           <span>{{ t('other.description') }}</span>
           <Select
@@ -256,28 +276,6 @@ watch(
           </Button>
         </div>
       </Divider>
-
-      <div class="flex flex-wrap gap-4">
-        <ContactCreationInput
-          significance="other"
-          v-for="otherField in selectedOtherFields"
-          :key="otherField.id"
-          v-bind="otherField"
-          :modelValue="values[otherField.id] ?? ''"
-          @error="(val) => (errors[otherField.id] = val)"
-        />
-      </div>
     </div>
-
-    <template #footer>
-      <div class="flex flex-col items-center gap-4 pt-8">
-        <SplitButton
-          :label="creationLabel === 'one' ? t('create-contact') : t('create-contacts')"
-          @click="createContactFn"
-          :model="buttonItems"
-          :disabled="isCreateButtonDisabled || isLoading"
-        />
-      </div>
-    </template>
   </MCard>
 </template>

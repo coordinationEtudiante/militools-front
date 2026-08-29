@@ -24,9 +24,7 @@ const area = computed(() => areaStore.getArea())
 const actionPerm = computed(() => permStore.getPerm(':area/action/list', false))
 const searchPerm = computed(() => permStore.getPerm(':area/contact/getContacts', false))
 const contactPerm = computed(
-  () =>
-    permStore.getPerm(':area/contact/getContactFields', false) &&
-    permStore.getPerm(':area/contact/getContactFields', false, 'admin'),
+  () => permStore.getPerm(':area/contact/getContacts', false) === 'admin',
 )
 
 const selectedArea = ref(area.value.id)
