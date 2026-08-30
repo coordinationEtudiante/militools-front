@@ -79,9 +79,7 @@ watch(
 
 function searchEnum(event: { query: string }) {
   const query = event.query.trim().toLowerCase()
-  enumSuggestions.value = enumOptions.value.filter((option) =>
-    option.toLowerCase().includes(query),
-  )
+  enumSuggestions.value = enumOptions.value.filter((option) => option.toLowerCase().includes(query))
 }
 
 function primaryDetail(option: Suggestion): { name: string; value: string } | null {
