@@ -3,6 +3,7 @@ import { getAutocompleteFields } from '@/cloud-functions/contacts/getAutocomplet
 import { getContactById } from '@/cloud-functions/contacts/getContactById'
 import InputPhone from '@/components/form/inputPhone.vue'
 import { useAreaStore } from '@/stores/area.store'
+import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
 import { AutoComplete, InputText, Message, ToggleSwitch } from 'primevue'
 import { computed, ref, watch, type InputHTMLAttributes } from 'vue'
@@ -63,6 +64,28 @@ function toggleBoolean() {
   booleanValue.value = !booleanValue.value
 }
 const suggestions = ref<Suggestion[]>([])
+const isEnum = computed(() => props.type.startsWith('enum'))
+const enumOptions = computed(() => extractEnumOptions(props.type, validator.value))
+const enumSuggestions = ref<string[]>([])
+
+watch(
+  enumOptions,
+  (options) => {
+    enumSuggestions.value = [...options]
+  },
+  { immediate: true },
+)
+
+function searchEnum(event: { query: string }) {
+  const query = event.query.trim().toLowerCase()
+  enumSuggestions.value = enumOptions.value.filter((option) =>
+    option.toLowerCase().includes(query),
+  )
+}
+
+function primaryDetail(option: Suggestion): { name: string; value: string } | null {
+  return option.primaryFields?.find((field) => field.name !== props.name) ?? null
+}
 
 watch(
   () => props.modelValue,
@@ -185,6 +208,17 @@ async function handleSelect(selected: Suggestion) {
         />
       </div>
 
+      <AutoComplete
+        v-else-if="isEnum"
+        v-model="displayValue"
+        :inputId="String(id)"
+        :suggestions="enumSuggestions"
+        @complete="searchEnum"
+        dropdown
+        :invalid="errored"
+        fluid
+      />
+
       <InputPhone
         v-else-if="sig === 'other' && props.type == 'phone'"
         v-model:phone="phoneValue"
@@ -217,13 +251,21 @@ async function handleSelect(selected: Suggestion) {
           <div class="flex flex-col gap-1 text-sm">
             <span class="font-medium">{{ slotProps.option.output }}</span>
             <span
-              v-if="significance !== 'primary' && slotProps.option.primaryFields?.length"
+              v-if="sig !== 'primary' && slotProps.option.primaryFields?.length"
               class="text-xs text-gray-500"
             >
               {{
                 slotProps.option.primaryFields
                   .map((p: { name: string; value: string }) => `${p.name}: ${p.value}`)
                   .join(' · ')
+              }}
+            </span>
+            <span
+              v-else-if="sig === 'primary' && primaryDetail(slotProps.option)"
+              class="text-xs text-gray-500"
+            >
+              {{
+                `${primaryDetail(slotProps.option)!.name}: ${primaryDetail(slotProps.option)!.value}`
               }}
             </span>
             <!-- <span

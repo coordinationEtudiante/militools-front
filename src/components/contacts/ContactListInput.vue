@@ -1,6 +1,17 @@
 <template>
+  <AutoComplete
+    v-if="isEnum"
+    v-model="model"
+    fluid
+    :suggestions="enumSuggestions"
+    @complete="searchEnum"
+    dropdown
+    @keydown.enter="commit"
+    @blur="commit"
+    :invalid="errored"
+  />
   <InputText
-    v-if="significance == 'other'"
+    v-else-if="significance == 'other'"
     v-model="model"
     fluid
     :inputProps="{ autocomplete: true }"
@@ -25,10 +36,11 @@
 <script setup lang="ts">
 import { useAreaStore } from '@/stores/area.store'
 import { fetchResource } from '@/tools/fetch.utils'
+import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
 import { AutoComplete, InputText, type AutoCompleteOptionSelectEvent } from 'primevue'
 
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
@@ -83,6 +95,25 @@ const committed = ref(false)
 
 const validator = computed(() => area.contactTypeValidator?.get(props.type))
 const validatorSource = computed(() => validator.value ?? /.*/)
+
+const isEnum = computed(() => props.type.startsWith('enum'))
+const enumOptions = computed(() => extractEnumOptions(props.type, validator.value))
+const enumSuggestions = ref<string[]>([])
+
+watch(
+  enumOptions,
+  (options) => {
+    enumSuggestions.value = [...options]
+  },
+  { immediate: true },
+)
+
+function searchEnum(event: { query: string }) {
+  const query = event.query.trim().toLowerCase()
+  enumSuggestions.value = enumOptions.value.filter((option) =>
+    option.toLowerCase().includes(query),
+  )
+}
 
 const errored = computed(() => {
   if (!committed.value || model.value == '') return false
