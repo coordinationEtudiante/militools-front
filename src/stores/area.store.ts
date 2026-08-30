@@ -127,43 +127,39 @@ export const useAreaStore = defineStore('area', () => {
 
   async function hydrate(force = false) {
     if (hasCompleteSession(storeSession.value)) {
-      const nextSelectedArea = storeSession.value.areas.find(
-        (area) => area.id === storeSession.value?.selectedArea,
-      )
+      let nextSession = storeSession.value
+      let nextSelectedArea = nextSession.areas.find((area) => area.id === nextSession.selectedArea)
 
-      if (!nextSelectedArea) {
-        const fallbackAreaId = storeSession.value.areas.at(0)!.id
-        storeSession.value = {
-          ...storeSession.value,
-          selectedArea: fallbackAreaId,
-          fields: [],
-        }
-
-        const fieldsResult = await loadFields(fallbackAreaId)
-
-        if (!fieldsResult) {
-          return null
-        }
-
-        storeSession.value = {
-          ...storeSession.value,
-          fields: fieldsResult.fetchedFields,
-        }
-      } else if (
-        force ||
-        storeSession.value.fields.some((field) => field.area !== nextSelectedArea.id)
-      ) {
-        const fieldsResult = await loadFields(nextSelectedArea.id)
-
-        if (!fieldsResult) {
-          return null
-        }
-
-        storeSession.value = {
-          ...storeSession.value,
-          fields: fieldsResult.fetchedFields,
+      // force = true also refreshes the joined areas list.
+      if (force) {
+        const areaRequest = fetchAreas()
+        await areaRequest.loadingPromise.value
+        const fetchedAreas = areaRequest.data.value ?? []
+        if (fetchedAreas.length) {
+          nextSession = { ...nextSession, areas: fetchedAreas }
+          nextSelectedArea = nextSession.areas.find((area) => area.id === nextSession.selectedArea)
         }
       }
+
+      const areaId = nextSelectedArea?.id ?? nextSession.areas.at(0)!.id
+      if (!nextSelectedArea) {
+        nextSession = { ...nextSession, selectedArea: areaId, fields: [], validator: [] }
+      }
+
+      // Always re-fetch the fields AND their validators: the localStorage
+      // session may be stale (fields/validators are edited server-side).
+      const fieldsResult = await loadFields(areaId)
+
+      if (!fieldsResult) {
+        return null
+      }
+
+      storeSession.value = {
+        ...nextSession,
+        fields: fieldsResult.fetchedFields,
+        validator: fieldsResult.validator,
+      }
+      errored.value = false
 
       return storeSession.value
     }
@@ -190,6 +186,7 @@ export const useAreaStore = defineStore('area', () => {
       ...storeSession.value,
       selectedArea: areaId,
       fields: [],
+      validator: [],
     }
 
     const fieldsResult = await loadFields(areaId)
@@ -201,6 +198,7 @@ export const useAreaStore = defineStore('area', () => {
     storeSession.value = {
       ...storeSession.value,
       fields: fieldsResult.fetchedFields,
+      validator: fieldsResult.validator,
     }
 
     return storeSession.value

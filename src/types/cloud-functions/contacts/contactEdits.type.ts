@@ -1,7 +1,7 @@
 import type { FetchDefault } from '../FetchDefault.type'
 
-export const editContactMethod = 'POST' as const
-export type editContactFetch = FetchDefault<
+export const editContactsMethod = 'POST' as const
+export type editContactsFetch = FetchDefault<
   { data: { contactId: number; data: Array<{ id: number; value: string }> }[] },
   {
     updated: number[]
@@ -11,5 +11,5 @@ export type editContactFetch = FetchDefault<
     }[]
   },
   Record<string, never>,
-  typeof editContactMethod
+  typeof editContactsMethod
 >
