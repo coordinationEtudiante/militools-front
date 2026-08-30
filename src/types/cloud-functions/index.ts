@@ -5,7 +5,8 @@ import { type getAreaFetch, getAreaFetchMethod } from './areas/getArea.type'
 import { type LoginFetch, LoginFetchMethod } from './auth/login.type'
 import { type RegisterFetch, RegisterFetchMethod } from './auth/register.type'
 import { type TestTokenFetch, TestTokenFetchMethod } from './auth/testToken.type'
-import { editContactMethod, type editContactFetch } from './contacts/contactEdits.type'
+import { editContactMethod, type editContactFetch } from './contacts/editContact.type'
+import { editContactsMethod, type editContactsFetch } from './contacts/contactEdits.type'
 import { type createContact, createContactMethod } from './contacts/createContact'
 import {
   type createContactFieldsFetch,
@@ -40,7 +41,8 @@ export type CloudFunctionRouteMap = {
   ':area/contact/create': createContact
   ':area/contact/createContactFields': createContactFieldsFetch
   ':area/contact/creates': createContactsFetch
-  ':area/contact/edits': editContactFetch
+  ':area/contact/edit': editContactFetch
+  ':area/contact/edits': editContactsFetch
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsFetch
   ':area/contact/getContactById': getContactByIdFetch
   ':area/contact/getContactFields': getContactFieldsFetch
@@ -65,7 +67,8 @@ export const routeMethodMap = {
   ':area/contact/create': createContactMethod,
   ':area/contact/createContactFields': createContactFieldsMethod,
   ':area/contact/creates': createContactsMethod,
-  ':area/contact/edits': editContactMethod,
+  ':area/contact/edit': editContactMethod,
+  ':area/contact/edits': editContactsMethod,
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsMethod,
   ':area/contact/getContactById': getContactByIdMethod,
   ':area/contact/getContactFields': getContactFieldsFetchMethod,

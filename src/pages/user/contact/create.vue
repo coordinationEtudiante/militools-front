@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { createContact } from '@/cloud-functions/contacts/create'
+import { editContact } from '@/cloud-functions/contacts/edit'
 import ContactCreationInput from '@/components/contacts/ContactCreationInput.vue'
 import CreateField from '@/components/contacts/CreateField.vue'
 import MCard from '@/components/MCard.vue'
 import { router } from '@/router'
 import { useAreaStore } from '@/stores/area.store'
-import { Button, Divider, Select, SplitButton, Toast } from 'primevue'
+import { Button, Divider, Select, SplitButton, Toast, ToggleSwitch } from 'primevue'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -30,7 +31,8 @@ const fields = computed(() => area.fields)
 
 const values = ref<Record<number, string>>({})
 const errors = ref<Record<number, boolean>>({})
-const isAutoComplete = ref(false)
+const editMode = ref(false)
+const autoCompletedContactId = ref<number | null>(null)
 const selectedPrimaryFields = ref<typeof area.fields>([])
 const selectedIndexedFields = ref<typeof area.fields>([])
 const selectedOtherFields = ref<typeof area.fields>([])
@@ -91,13 +93,16 @@ async function createContactFn() {
     }))
 
   try {
-    const result = createContact(formattedValues, false)
+    const result =
+      editMode.value && autoCompletedContactId.value !== null
+        ? editContact(autoCompletedContactId.value, formattedValues, false)
+        : createContact(formattedValues, false)
     await result.doFetch()
 
     if (result.errorCode.value && result.errorCode.value !== 200) {
       toast.add({
         severity: 'error',
-        summary: t('contact.create.error'),
+        summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
         life: 3000,
       })
       return
@@ -105,7 +110,7 @@ async function createContactFn() {
 
     toast.add({
       severity: 'success',
-      summary: t('contact.create.success'),
+      summary: editMode.value ? t('contact.edit.success') : t('contact.create.success'),
       life: 3000,
     })
 
@@ -113,7 +118,7 @@ async function createContactFn() {
   } catch {
     toast.add({
       severity: 'error',
-      summary: t('contact.create.error'),
+      summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
       life: 3000,
     })
   } finally {
@@ -127,11 +132,15 @@ function updateField(id: number, val: string) {
 
 function updateValues(newValues: { field: number; value: string }[]) {
   const newObj = { ...values.value }
-  isAutoComplete.value = true
   newValues.forEach(({ field, value }) => {
     newObj[field] = value
   })
   values.value = newObj
+}
+
+function handleAutofilledContact(contactId: number) {
+  autoCompletedContactId.value = contactId
+  editMode.value = true
 }
 
 watch(
@@ -189,6 +198,7 @@ watch(
           @update:modelValue="(val) => updateField(primaryField.id, val)"
           @error="(val) => (errors[primaryField.id] = val)"
           @update:providedField="updateValues"
+          @autofilledContact="handleAutofilledContact"
         />
       </div>
 
@@ -202,6 +212,7 @@ watch(
           @update:modelValue="(val) => updateField(indexedField.id, val)"
           @error="(val) => (errors[indexedField.id] = val)"
           @update:providedField="updateValues"
+          @autofilledContact="handleAutofilledContact"
         />
       </div>
 
@@ -218,6 +229,13 @@ watch(
       </div>
 
       <div class="order-7 flex flex-col items-center gap-4 pt-8">
+        <label
+          v-if="autoCompletedContactId !== null"
+          class="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
+        >
+          <ToggleSwitch v-model="editMode" inputId="edit-existing-contact" />
+          <span>{{ t('create-contact.edit-existing') }}</span>
+        </label>
         <SplitButton
           :label="creationLabel === 'one' ? t('create-contact') : t('create-contacts')"
           @click="createContactFn"

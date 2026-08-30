@@ -31,6 +31,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
   error: [hasError: boolean]
   'update:providedField': [fields: { field: number; value: string }[]]
+  autofilledContact: [contactId: number]
 }>()
 
 const { t } = useI18n()
@@ -168,6 +169,7 @@ async function handleSelect(selected: Suggestion) {
     'update:providedField',
     contact.fields.map((f) => ({ field: f.id, value: f.value })),
   )
+  emit('autofilledContact', selected.contactId)
   selecting = false
 }
 </script>
