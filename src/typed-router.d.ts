@@ -128,6 +128,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/user/debug/': RouteRecordInfo<
+      '/user/debug/',
+      '/user/debug',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/user/settings/': RouteRecordInfo<
       '/user/settings/',
       '/user/settings',
@@ -235,6 +242,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/user/contact/search.vue': {
       routes:
         | '/user/contact/search'
+      views:
+        | never
+    }
+    'src/pages/user/debug/index.vue': {
+      routes:
+        | '/user/debug/'
       views:
         | never
     }

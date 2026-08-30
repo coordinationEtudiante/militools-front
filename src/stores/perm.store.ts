@@ -25,8 +25,13 @@ export const usePermStore = defineStore('perm', () => {
   const authorizedRoutes = computed(() => storage.value?.authorizedRoutes ?? [])
   const routes = computed(() => storage.value?.routes ?? [])
 
-  async function hydrate() {
-    if (hasSession.value) return
+  /**
+   * Loads the permissions from the backend.
+   * By default, only refetches when they are not already cached.
+   * force = true ignores the cache (used by the debug page to re-fetch).
+   */
+  async function hydrate(force = false) {
+    if (hasSession.value && !force) return
 
     loading.value = true
     errored.value = false
