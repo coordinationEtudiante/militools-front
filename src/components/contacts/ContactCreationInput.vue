@@ -3,6 +3,7 @@ import { getAutocompleteFields } from '@/cloud-functions/contacts/getAutocomplet
 import { getContactById } from '@/cloud-functions/contacts/getContactById'
 import InputPhone from '@/components/form/inputPhone.vue'
 import { useAreaStore } from '@/stores/area.store'
+import { clearPhone } from '@/tools/phone.utils'
 import { AutoComplete, InputText, Message, ToggleSwitch } from 'primevue'
 import { computed, ref, watch, type InputHTMLAttributes } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -94,11 +95,19 @@ const displayValue = computed({
 
 const errored = computed(() => {
   if (!displayValue.value) return false
-  const value = props.type == 'phone' ? displayValue.value.replace(/\s/g, '') : displayValue.value
+  const value = props.type == 'phone' ? clearPhone(displayValue.value) : displayValue.value
   return !validator.value.test(value.trim())
 })
 
 watch(errored, (val) => emit('error', val), { immediate: true })
+
+function normalizePhone() {
+  if (props.type !== 'phone' || typeof inputValue.value !== 'string') return
+  const normalized = clearPhone(inputValue.value)
+  if (normalized !== inputValue.value) {
+    inputValue.value = normalized
+  }
+}
 
 async function searchFieldValue(event: { query: string }) {
   if (event.query.length < 2) {
@@ -177,7 +186,7 @@ async function handleSelect(selected: Suggestion) {
       </div>
 
       <InputPhone
-        v-else-if="props.type == 'phone'"
+        v-else-if="sig === 'other' && props.type == 'phone'"
         v-model:phone="phoneValue"
         :disabled="false"
         :invalid="errored"
@@ -199,6 +208,7 @@ async function handleSelect(selected: Suggestion) {
         :suggestions="suggestions"
         optionLabel="output"
         @complete="searchFieldValue"
+        @blur="normalizePhone"
         :invalid="errored"
         :input-props="inputAttrs"
         fluid

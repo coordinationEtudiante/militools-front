@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button, Message } from 'primevue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ServerSelection from '@/components/form/ServerSelection.vue'
 import { useUserStore } from '@/stores/user.store'
@@ -8,6 +8,7 @@ import { router } from '@/router'
 import InputPhone from '@/components/form/inputPhone.vue'
 import InputPassword from '@/components/form/InputPassword.vue'
 import { login } from '@/cloud-functions/auth/login'
+import { clearPhone } from '@/tools/phone.utils'
 
 const { t } = useI18n()
 const userStore = useUserStore()
@@ -19,14 +20,16 @@ const submitted = ref(false)
 const connecting = ref(false)
 const errored = ref<number>(200)
 
+const phoneError = computed(() => {
+  if (submitted.value && phone.value.trim() === '') return true
+  if (submitted.value && !/^\+33[67]\d{8}$/.test(clearPhone(phone.value))) return true
+  return false
+})
+
 async function loginUser() {
   submitted.value = true
 
-  if (
-    phone.value.trim() === '' ||
-    password.value.trim() === '' ||
-    phone.value.trim().length !== 14
-  ) {
+  if (phoneError.value || password.value.trim() === '') {
     return
   }
 
@@ -36,7 +39,7 @@ async function loginUser() {
   try {
     const result = login(
       {
-        phone: phone.value,
+        phone: clearPhone(phone.value),
         password: password.value,
       },
       false,
@@ -75,7 +78,7 @@ async function loginUser() {
     <InputPhone
       v-model:phone="phone"
       :disabled="connecting"
-      :invalid="submitted && (phone.trim() === '' || phone.trim().length != 14)"
+      :invalid="phoneError"
     />
     <InputPassword
       v-model:password="password"

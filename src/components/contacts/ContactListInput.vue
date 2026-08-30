@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { useAreaStore } from '@/stores/area.store'
 import { fetchResource } from '@/tools/fetch.utils'
+import { clearPhone } from '@/tools/phone.utils'
 import { AutoComplete, InputText, type AutoCompleteOptionSelectEvent } from 'primevue'
 
 import { computed, ref } from 'vue'
@@ -90,6 +91,12 @@ const errored = computed(() => {
 })
 
 function commit() {
+  if (props.type === 'phone' && model.value !== '') {
+    const normalized = clearPhone(model.value)
+    if (normalized !== model.value) {
+      emit('update:modelValue', normalized)
+    }
+  }
   committed.value = true
   emit('commit')
 }

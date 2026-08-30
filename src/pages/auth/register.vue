@@ -4,6 +4,7 @@ import InputPassword from '@/components/form/InputPassword.vue'
 import InputPhone from '@/components/form/inputPhone.vue'
 import ServerSelection from '@/components/form/ServerSelection.vue'
 import { router } from '@/router'
+import { clearPhone } from '@/tools/phone.utils'
 import { CircleUserRound, AtSign } from '@lucide/vue'
 import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { computed, ref } from 'vue'
@@ -22,6 +23,12 @@ const submitted = ref(false)
 const creating = ref(false)
 const errored = ref<false | number>(false)
 const created = ref(false)
+
+const phoneError = computed(() => {
+  if (submitted.value && phone.value.trim() === '') return true
+  if (submitted.value && !/^\+33[67]\d{8}$/.test(clearPhone(phone.value))) return true
+  return false
+})
 
 const emailError = computed(() => {
   const emailPattern =
@@ -42,9 +49,8 @@ async function createAccount() {
   if (
     firstName.value.trim() === '' ||
     email.value.trim() === '' ||
-    phone.value.trim() === '' ||
-    password.value.trim() === '' ||
-    phone.value.trim().length !== 14
+    phoneError.value ||
+    password.value.trim() === ''
   ) {
     return
   }
@@ -55,7 +61,7 @@ async function createAccount() {
   try {
     const result = register(
       {
-        phone: phone.value,
+        phone: clearPhone(phone.value),
         password: password.value,
         name: firstName.value,
         email: email.value,
@@ -116,7 +122,7 @@ async function createAccount() {
     <InputPhone
       v-model:phone="phone"
       :disabled="creating"
-      :invalid="submitted && (phone.trim() === '' || phone.trim().length != 14)"
+      :invalid="phoneError"
     />
     <InputPassword
       v-model:password="password"

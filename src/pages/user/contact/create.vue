@@ -11,6 +11,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CirclePlus } from '@lucide/vue'
 import { usePermStore } from '@/stores/perm.store'
+import { clearPhone } from '@/tools/phone.utils'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -48,7 +49,7 @@ watch(
     const newErrors = { ...errors.value }
     newFields.forEach((field) => {
       if (!(field.id in newValues)) {
-        newValues[field.id] = ''
+        newValues[field.id] = field.defaultValue ?? ''
       }
       if (!(field.id in newErrors)) {
         newErrors[field.id] = false
@@ -81,11 +82,12 @@ function toggleModalCreateField() {
 
 async function createContactFn() {
   isLoading.value = true
+  const fieldTypes = new Map(fields.value.map((f) => [f.id, f.type]))
   const formattedValues = Object.entries(values.value)
     .filter(([, value]) => value !== '')
     .map(([key, value]) => ({
       id: Number(key),
-      value,
+      value: fieldTypes.get(Number(key)) === 'phone' ? clearPhone(value) : value,
     }))
 
   try {
@@ -210,6 +212,7 @@ watch(
           :key="otherField.id"
           v-bind="otherField"
           :modelValue="values[otherField.id] ?? ''"
+          @update:modelValue="(val) => updateField(otherField.id, val)"
           @error="(val) => (errors[otherField.id] = val)"
         />
       </div>
