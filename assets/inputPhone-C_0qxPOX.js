@@ -1,4 +1,4 @@
-import{Cn as e,Mn as t,Nn as n,Tn as r,Zn as i,bn as a,cn as o,f as s,hn as c,in as l,kn as u,mn as d,n as f,nn as p,sn as m,tn as h,tr as g,u as _}from"./vue-i18n-Dd-f5b4D.js";import{M as v,T as y,n as b,w as x}from"./index-CxSX2Hlh.js";var S=s.extend({name:`floatlabel`,style:`
+import{Cn as e,Mn as t,Nn as n,Tn as r,Zn as i,bn as a,cn as o,f as s,hn as c,in as l,kn as u,mn as d,n as f,nn as p,sn as m,tn as h,tr as g,u as _}from"./vue-i18n-Dd-f5b4D.js";import{M as v,T as y,n as b,w as x}from"./index-DjQFLVon.js";var S=s.extend({name:`floatlabel`,style:`
     .p-floatlabel {
         display: block;
         position: relative;
