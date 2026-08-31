@@ -114,7 +114,7 @@ async function createContactFn() {
       life: 3000,
     })
 
-    await router.push('/user/contact')
+    if (creationLabel.value === 'one') await router.push('/user/contact')
   } catch {
     toast.add({
       severity: 'error',
