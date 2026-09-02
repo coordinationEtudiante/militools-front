@@ -1,4 +1,4 @@
-import{Cn as e,En as t,K as n,Kt as r,Mn as i,Nn as a,Qn as o,R as s,Tn as c,Tt as l,Un as u,X as d,Xn as f,Yt as p,bn as m,en as h,f as g,hn as _,in as v,nn as y,o as b,rn as x,tn as S,u as C}from"./vue-i18n-Dd-f5b4D.js";import{t as w}from"./chevron-up-laW26pJY.js";import{B as T,H as E,m as D,o as O}from"./index-Dj5pYV-5.js";var k=g.extend({name:`accordion`,style:`
+import{Cn as e,En as t,K as n,Kt as r,Mn as i,Nn as a,Qn as o,R as s,Tn as c,Tt as l,Un as u,X as d,Xn as f,Yt as p,bn as m,en as h,f as g,hn as _,in as v,nn as y,o as b,rn as x,tn as S,u as C}from"./vue-i18n-Dd-f5b4D.js";import{t as w}from"./chevron-up-laW26pJY.js";import{B as T,H as E,m as D,o as O}from"./index-DKsWvM-0.js";var k=g.extend({name:`accordion`,style:`
     .p-accordionpanel {
         display: flex;
         flex-direction: column;
