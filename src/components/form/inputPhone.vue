@@ -16,6 +16,7 @@ const props = withDefaults(
     disabled?: boolean
     invalid?: boolean
     suggestions?: PhoneSuggestion[]
+    tabindex?: number
   }>(),
   { disabled: false, invalid: false },
 )
@@ -202,6 +203,7 @@ watch(filteredSuggestions, (list) => {
           inputmode="numeric"
           :disabled="props.disabled"
           :invalid="props.invalid"
+          :tabindex="props.tabindex"
           fluid
           @focus="onFocus"
           @input="onInput"

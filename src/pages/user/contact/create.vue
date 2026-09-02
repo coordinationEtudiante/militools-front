@@ -38,6 +38,7 @@ const selectedIndexedFields = ref<typeof area.fields>([])
 const selectedOtherFields = ref<typeof area.fields>([])
 const showCreateFieldsModal = ref(false)
 const creationLabel = ref<'one' | 'many'>('one')
+const frozenFields = ref<Record<number, boolean>>({})
 const isLoading = ref(false)
 
 const isCreateButtonDisabled = computed(() => {
@@ -114,7 +115,23 @@ async function createContactFn() {
       life: 3000,
     })
 
-    if (creationLabel.value === 'one') await router.push('/user/contact')
+    if (creationLabel.value === 'one') {
+      await router.push('/user/contact')
+    } else {
+      const newValues: Record<number, string> = {}
+      for (const [key, val] of Object.entries(values.value)) {
+        const fieldId = Number(key)
+        if (frozenFields.value[fieldId]) {
+          newValues[fieldId] = val
+        } else {
+          newValues[fieldId] = ''
+        }
+      }
+      values.value = newValues
+      errors.value = {}
+      editMode.value = false
+      autoCompletedContactId.value = null
+    }
   } catch {
     toast.add({
       severity: 'error',
@@ -195,10 +212,13 @@ watch(
           v-bind="primaryField"
           significance="primary"
           :modelValue="values[primaryField.id] ?? ''"
+          :frozen="frozenFields[primaryField.id] ?? false"
+          :showLock="creationLabel === 'many'"
           @update:modelValue="(val) => updateField(primaryField.id, val)"
           @error="(val) => (errors[primaryField.id] = val)"
           @update:providedField="updateValues"
           @autofilledContact="handleAutofilledContact"
+          @update:frozen="(val) => (frozenFields[primaryField.id] = val)"
         />
       </div>
 
@@ -209,10 +229,13 @@ watch(
           v-bind="indexedField"
           significance="recomended"
           :modelValue="values[indexedField.id] ?? ''"
+          :frozen="frozenFields[indexedField.id] ?? false"
+          :showLock="creationLabel === 'many'"
           @update:modelValue="(val) => updateField(indexedField.id, val)"
           @error="(val) => (errors[indexedField.id] = val)"
           @update:providedField="updateValues"
           @autofilledContact="handleAutofilledContact"
+          @update:frozen="(val) => (frozenFields[indexedField.id] = val)"
         />
       </div>
 
@@ -223,8 +246,11 @@ watch(
           :key="otherField.id"
           v-bind="otherField"
           :modelValue="values[otherField.id] ?? ''"
+          :frozen="frozenFields[otherField.id] ?? false"
+          :showLock="creationLabel === 'many'"
           @update:modelValue="(val) => updateField(otherField.id, val)"
           @error="(val) => (errors[otherField.id] = val)"
+          @update:frozen="(val) => (frozenFields[otherField.id] = val)"
         />
       </div>
 

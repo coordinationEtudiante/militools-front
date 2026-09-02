@@ -261,5 +261,7 @@
   "reload.fields": "Recharger les fields",
   "reload.actions": "Recharger les actions",
   "reload.credit": "Recharger le crédit",
-  "reload.stats": "Recharger les stats"
+  "reload.stats": "Recharger les stats",
+  "field.freeze": "Geler le champ",
+  "field.unfreeze": "Dégele le champ"
 }
