@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getAutocompleteFields } from '@/cloud-functions/contacts/getAutocompleteFields'
 import { getContactById } from '@/cloud-functions/contacts/getContactById'
-import InputPhone from '@/components/form/inputPhone.vue'
+import InputPhone, { type PhoneSuggestion } from '@/components/form/inputPhone.vue'
 import { useAreaStore } from '@/stores/area.store'
 import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
@@ -131,16 +131,40 @@ function normalizePhone() {
   }
 }
 
-async function searchFieldValue(event: { query: string }) {
-  if (event.query.length < 2) {
+async function searchSuggestions(query: string) {
+  if (query.length < 2) {
     suggestions.value = []
     return
   }
 
-  const result = getAutocompleteFields({ field: String(props.id), partial: event.query })
+  const result = getAutocompleteFields({ field: String(props.id), partial: query })
   await result.doFetch()
 
   suggestions.value = result.data.value?.proposals ?? []
+}
+
+async function searchFieldValue(event: { query: string }) {
+  await searchSuggestions(event.query)
+}
+
+const phoneSuggestions = computed<PhoneSuggestion[] | undefined>(() => {
+  if (props.type !== 'phone') return undefined
+  return suggestions.value.map((suggestion) => {
+    const detail = primaryDetail(suggestion)
+    return {
+      value: suggestion.output,
+      detail: detail ? `${detail.name}: ${detail.value}` : undefined,
+    }
+  })
+})
+
+function handlePhoneSelect(value: string) {
+  const suggestion =
+    suggestions.value.find((s) => s.output === value) ??
+    suggestions.value.find((s) => clearPhone(s.output) === clearPhone(value))
+  if (suggestion) {
+    void handleSelect(suggestion)
+  }
 }
 
 async function handleSelect(selected: Suggestion) {
@@ -220,10 +244,13 @@ async function handleSelect(selected: Suggestion) {
       />
 
       <InputPhone
-        v-else-if="sig === 'other' && props.type == 'phone'"
+        v-else-if="props.type == 'phone'"
         v-model:phone="phoneValue"
         :disabled="false"
         :invalid="errored"
+        :suggestions="phoneSuggestions"
+        @select="handlePhoneSelect"
+        @search="searchSuggestions"
       />
 
       <InputText
