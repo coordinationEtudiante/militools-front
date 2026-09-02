@@ -37,6 +37,7 @@ app.use(PrimeVue, {
   },
   license: import.meta.env.VITE_PRIMEUI_LICENSE_KEY,
 })
+
 app.directive('mask', Mask)
 app.directive('tooltip', Tooltip)
 app.use(createPinia())
