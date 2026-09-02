@@ -260,5 +260,7 @@
   "reload.fields": "Reload fields",
   "reload.actions": "Reload actions",
   "reload.credit": "Reload credit",
-  "reload.stats": "Reload stats"
+  "reload.stats": "Reload stats",
+  "field.freeze": "Freeze field",
+  "field.unfreeze": "Unfreeze field"
 }

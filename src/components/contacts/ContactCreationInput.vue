@@ -5,6 +5,7 @@ import InputPhone, { type PhoneSuggestion } from '@/components/form/inputPhone.v
 import { useAreaStore } from '@/stores/area.store'
 import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
+import { Lock, Unlock } from '@lucide/vue'
 import { AutoComplete, InputText, Message, ToggleSwitch } from 'primevue'
 import { computed, ref, watch, type InputHTMLAttributes } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,24 +16,34 @@ interface Suggestion {
   primaryFields: { name: string; value: string }[]
 }
 
-const props = defineProps<{
-  id: number
-  name: string
-  type: string
-  description?: string | null
-  defaultValue?: string | null
-  primary?: boolean
-  indexed?: boolean
-  significance: 'primary' | 'recomended' | 'other'
-  modelValue?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    id: number
+    name: string
+    type: string
+    description?: string | null
+    defaultValue?: string | null
+    primary?: boolean
+    indexed?: boolean
+    significance: 'primary' | 'recomended' | 'other'
+    modelValue?: string
+    frozen?: boolean
+    showLock?: boolean
+  }>(),
+  { frozen: false, showLock: false },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   error: [hasError: boolean]
   'update:providedField': [fields: { field: number; value: string }[]]
   autofilledContact: [contactId: number]
+  'update:frozen': [value: boolean]
 }>()
+
+function toggleFrozen() {
+  emit('update:frozen', !props.frozen)
+}
 
 const { t } = useI18n()
 const area = useAreaStore()
@@ -219,7 +230,7 @@ async function handleSelect(selected: Suggestion) {
         role="switch"
         :aria-checked="booleanValue"
         :aria-label="name"
-        tabindex="0"
+        :tabindex="frozen ? -1 : 0"
         class="flex w-fit cursor-pointer items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-(--primary-color)"
         @keydown.space.prevent="toggleBoolean"
         @keydown.enter.prevent="toggleBoolean"
@@ -240,6 +251,7 @@ async function handleSelect(selected: Suggestion) {
         @complete="searchEnum"
         dropdown
         :invalid="errored"
+        :tabindex="frozen ? -1 : undefined"
         fluid
       />
 
@@ -249,6 +261,7 @@ async function handleSelect(selected: Suggestion) {
         :disabled="false"
         :invalid="errored"
         :suggestions="phoneSuggestions"
+        :tabindex="frozen ? -1 : undefined"
         @select="handlePhoneSelect"
         @search="searchSuggestions"
       />
@@ -259,6 +272,7 @@ async function handleSelect(selected: Suggestion) {
         v-model="displayValue"
         :invalid="errored"
         :input-props="inputAttrs"
+        :tabindex="frozen ? -1 : undefined"
         fluid
       />
 
@@ -272,6 +286,7 @@ async function handleSelect(selected: Suggestion) {
         @blur="normalizePhone"
         :invalid="errored"
         :input-props="inputAttrs"
+        :tabindex="frozen ? -1 : undefined"
         fluid
       >
         <template #option="slotProps">
@@ -314,10 +329,23 @@ async function handleSelect(selected: Suggestion) {
       </Message>
     </div>
 
-    <i
-      v-if="description"
-      class="pi pi-question-circle mt-2 cursor-help text-gray-400"
-      v-tooltip="description"
-    />
+    <div v-if="description || showLock" class="mt-2 flex items-center gap-1">
+      <i
+        v-if="description"
+        class="pi pi-question-circle cursor-help text-gray-400"
+        v-tooltip="description"
+      />
+      <button
+        v-if="showLock"
+        type="button"
+        class="cursor-pointer rounded p-0.5 text-gray-400 transition-colors hover:text-gray-700"
+        :class="{ 'text-amber-500 hover:text-amber-600': frozen }"
+        :title="frozen ? t('field.unfreeze') : t('field.freeze')"
+        @click="toggleFrozen"
+      >
+        <Lock v-if="frozen" :size="14" />
+        <Unlock v-else :size="14" />
+      </button>
+    </div>
   </div>
 </template>
