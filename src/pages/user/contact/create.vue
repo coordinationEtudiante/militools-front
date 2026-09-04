@@ -161,13 +161,13 @@ watch(
   <Toast />
   <MCard class="w-full">
     <template #header>
-      <h2 class="text-2xl tracking-tighter text-balance text-gray-950">
+      <h2 class="text-2xl tracking-tighter text-balance text-text">
         {{ t('create-contact.title') }}
       </h2>
     </template>
 
     <div class="flex flex-col gap-4">
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-text-muted">
         {{ t('contact.creation.summary') }}
       </p>
 

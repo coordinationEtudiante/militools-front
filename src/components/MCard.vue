@@ -20,12 +20,12 @@ defineSlots<{
 
 <template>
   <section
-    :class="bgColor ?? 'bg-white'"
-    class="flex flex-col gap-2 overflow-scroll rounded-xl border border-gray-300 p-4"
+    :class="bgColor ?? ''"
+    class="flex flex-col gap-2 overflow-scroll rounded-xl border border-border bg-surface p-4"
   >
     <template v-if="!errorMessage">
       <slot name="header">
-        <header v-if="title || subtitle" class="mb-2 tracking-tighter text-balance text-gray-950">
+        <header v-if="title || subtitle" class="mb-2 tracking-tighter text-balance text-text">
           <div class="text-2xl" v-if="title">
             {{ title }}
           </div>

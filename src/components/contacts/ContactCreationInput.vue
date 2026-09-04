@@ -141,21 +141,21 @@ async function handleSelect(selected: Suggestion) {
 </script>
 
 <template>
-  <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+  <div class="flex items-start gap-3 rounded-lg border border-border bg-surface-alt p-3">
     <div class="flex flex-1 flex-col gap-1">
       <div class="mb-1 flex items-center gap-2">
-        <span class="text-sm font-medium text-gray-700">{{ name }}</span>
+        <span class="text-sm font-medium text-text">{{ name }}</span>
         <i
           v-if="sig === 'primary'"
-          class="pi pi-id-card text-xs text-gray-400"
+          class="pi pi-id-card text-xs text-text-muted"
           v-tooltip="t('primary.description')"
         />
         <i
           v-else-if="sig === 'recomended'"
-          class="pi pi-bolt text-xs text-gray-400"
+          class="pi pi-bolt text-xs text-text-muted"
           v-tooltip="t('recomended.description')"
         />
-        <i v-else class="pi pi-tag text-xs text-gray-400" v-tooltip="t('other.description')" />
+        <i v-else class="pi pi-tag text-xs text-text-muted" v-tooltip="t('other.description')" />
       </div>
 
       <div
@@ -208,7 +208,7 @@ async function handleSelect(selected: Suggestion) {
             <span class="font-medium">{{ slotProps.option.output }}</span>
             <span
               v-if="significance !== 'primary' && slotProps.option.primaryFields?.length"
-              class="text-xs text-gray-500"
+              class="text-xs text-text-muted"
             >
               {{
                 slotProps.option.primaryFields
@@ -237,7 +237,7 @@ async function handleSelect(selected: Suggestion) {
 
     <i
       v-if="description"
-      class="pi pi-question-circle mt-2 cursor-help text-gray-400"
+      class="pi pi-question-circle mt-2 cursor-help text-text-muted"
       v-tooltip="description"
     />
   </div>
