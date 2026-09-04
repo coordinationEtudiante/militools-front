@@ -1,5 +1,41 @@
 @import 'tailwindcss';
 
+@theme {
+  /* Default values : dark theme */
+  --color-primary: #5d0d6e;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #8a2b9e;
+
+  --color-surface: #121014;
+  --color-surface-alt: #1c1a21;
+  --color-border: #3a3440;
+
+  --color-text: #f3f4f6;
+  --color-text-muted: #9ca3af;
+
+  --color-danger: #f87171;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+}
+
+/* Light theme : redefined only changed values */
+:root[data-theme='light'] {
+  --color-primary: #5d0d6e;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #8a2b9e;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f5f5;
+  --color-border: #e5e7eb;
+
+  --color-text: #1a1a1a;
+  --color-text-muted: #6b7280;
+
+  --color-danger: #b91c1c;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+}
+
 @font-face {
   font-family: 'peaceSans';
   src: url('../font/Peace\ Sans.otf') format('truetype');
