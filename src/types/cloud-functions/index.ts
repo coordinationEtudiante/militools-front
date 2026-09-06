@@ -28,6 +28,7 @@ import {
 } from './contacts/getContactFields'
 import { type getContactsFetch, getContactsMethod } from './contacts/getContacts'
 import { getDuplicateMethod, type getDuplicateFetch } from './contacts/getDuplicate.type'
+import { exportCSVMethod, type exportCSVFetch } from './contacts/exportCSV.type'
 import { getCreditFetchMethod, type getCreditFetch } from './credit/getCredit.type'
 import { type createImage, createImageMethod } from './image/create.type'
 import { type getPermFetch, getPermFetchMethod } from './perm/getPerm'
@@ -43,6 +44,7 @@ export type CloudFunctionRouteMap = {
   ':area/contact/creates': createContactsFetch
   ':area/contact/edit': editContactFetch
   ':area/contact/edits': editContactsFetch
+  ':area/contact/exportCSV': exportCSVFetch
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsFetch
   ':area/contact/getContactById': getContactByIdFetch
   ':area/contact/getContactFields': getContactFieldsFetch
@@ -69,6 +71,7 @@ export const routeMethodMap = {
   ':area/contact/creates': createContactsMethod,
   ':area/contact/edit': editContactMethod,
   ':area/contact/edits': editContactsMethod,
+  ':area/contact/exportCSV': exportCSVMethod,
   ':area/contact/getAutocompleteFields': getAutocompleteFieldsMethod,
   ':area/contact/getContactById': getContactByIdMethod,
   ':area/contact/getContactFields': getContactFieldsFetchMethod,

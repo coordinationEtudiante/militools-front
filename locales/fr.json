@@ -34,6 +34,7 @@
   "button.give-up": "Abandonner",
   "create-field": "Créer le champ",
   "create-one": "créer un contact",
+  "export-csv": "Exporter en CSV",
   "import-file": "importer un fichier",
   "modal.creat-field.header": "Créer un champ personnalisé",
   "modal.creat-field.title": "Remplissez le formulaire pour créer un nouveau champ",
