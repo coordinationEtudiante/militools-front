@@ -125,7 +125,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
-          <Button v-if="isExportPerm" severity="secondary" outlined @click="onExportCSV">
+          <Button v-if="isExportPerm" severity="contrast" @click="onExportCSV">
             {{ t('export-csv') }}
           </Button>
           <RouterLink to="/user/contact/create" v-if="isCreatePerm">
