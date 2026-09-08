@@ -34,6 +34,7 @@ import { type createImage, createImageMethod } from './image/create.type'
 import { type getPermFetch, getPermFetchMethod } from './perm/getPerm'
 import { type getRouteFetch, getRouteFetchMethod } from './routes/getRoutes.type'
 import { getContactStatsFetchMethod, type getContactStatsFetch } from './stats/contactStats.type'
+import { deleteContactMethod, type deleteContactFetch } from './contacts/deleteContact.type'
 
 export type CloudFunctionRouteMap = {
   ':area/action/create': createAction
@@ -55,6 +56,7 @@ export type CloudFunctionRouteMap = {
   ':area/image/create': createImage
   ':area/routes/getRoutes': getPermFetch
   ':area/stats/contactStats': getContactStatsFetch
+  ':area/contact/delete': deleteContactFetch
   '/areas/list': getAreaFetch
   'auth/login': LoginFetch
   'auth/register': RegisterFetch
@@ -82,10 +84,12 @@ export const routeMethodMap = {
   ':area/image/create': createImageMethod,
   ':area/routes/getRoutes': getPermFetchMethod,
   ':area/stats/contactStats': getContactStatsFetchMethod,
+  ':area/contact/delete': deleteContactMethod,
   '/areas/list': getAreaFetchMethod,
   'auth/login': LoginFetchMethod,
   'auth/register': RegisterFetchMethod,
   'auth/testToken': TestTokenFetchMethod,
+
   getRoute: getRouteFetchMethod,
 } as const satisfies {
   [K in CloudFunctionRoute]: CloudFunctionDefinition<K>['method']

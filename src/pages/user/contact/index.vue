@@ -8,6 +8,7 @@ import type { DataTableSortEvent, DataTableSortMeta } from 'primevue/datatable'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePermStore } from '@/stores/perm.store'
+import { fetchResource } from '@/tools/fetch.utils'
 
 const { t } = useI18n()
 const { getPerm, getPerms } = usePermStore()
@@ -47,6 +48,7 @@ const isCreatesPerm = getPerms(
 )
 const isCreatePerm = getPerm(':area/contact/create', false)
 const isExportPerm = getPerm(':area/contact/exportCSV', false)
+const isDeletePerm = getPerm(':area/contact/delete', false)
 
 const flatContacts = computed<FlatContact[]>(() =>
   contacts.value.map((c) => {
@@ -107,6 +109,15 @@ function onExportCSV() {
   exportContactCSV({ fields: '*' })
 }
 
+async function onDeletedContact() {
+  for (const contact of selectedContacts.value) {
+    await fetchResource(':area/contact/delete', { query: { contactId: contact.id } })
+    if (data.value) {
+      data.value.value = data.value.value.filter((e) => e.id !== contact.id)
+    }
+  }
+}
+
 onMounted(() => {
   fetchContacts()
 })
@@ -134,7 +145,12 @@ onMounted(() => {
           <RouterLink to="/user/contact/creates/" v-if="isCreatesPerm">
             <Button severity="contrast">{{ t('import-file') }}</Button>
           </RouterLink>
-          <Button severity="secondary" outlined :disabled="!selectedContacts.length">
+          <Button
+            severity="contrast"
+            :disabled="!selectedContacts.length"
+            v-if="isDeletePerm"
+            @click="onDeletedContact"
+          >
             {{ t('contact.delete-selected', { nb: selectedContacts.length }) }}
           </Button>
         </div>
