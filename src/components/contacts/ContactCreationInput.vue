@@ -310,16 +310,6 @@ async function handleSelect(selected: Suggestion) {
                 `${primaryDetail(slotProps.option)!.name}: ${primaryDetail(slotProps.option)!.value}`
               }}
             </span>
-            <!-- <span
-              v-else-if="significance !== 'recomended' && slotProps.option.recomended?.length"
-              class="text-xs text-gray-500"
-            >
-              {{
-                slotProps.option.recomended
-                  .map((p: { name: string; value: string }) => `${p.name}: ${p.value}`)
-                  .join(' · ')
-              }}
-            </span> -->
           </div>
         </template>
       </AutoComplete>

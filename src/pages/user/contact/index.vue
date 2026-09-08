@@ -2,6 +2,7 @@
 import MCard from '@/components/MCard.vue'
 import Dicebear from '@/components/Dicebear.vue'
 import { getContacts, type GetContactOptions } from '@/cloud-functions/contacts/getContacts'
+import { exportContactCSV } from '@/cloud-functions/contacts/exportCSV'
 import { Button, Column, DataTable, InputText } from 'primevue'
 import type { DataTableSortEvent, DataTableSortMeta } from 'primevue/datatable'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -45,6 +46,7 @@ const isCreatesPerm = getPerms(
   false,
 )
 const isCreatePerm = getPerm(':area/contact/create', false)
+const isExportPerm = getPerm(':area/contact/exportCSV', false)
 
 const flatContacts = computed<FlatContact[]>(() =>
   contacts.value.map((c) => {
@@ -101,6 +103,10 @@ function onFilter() {
   fetchContacts()
 }
 
+function onExportCSV() {
+  exportContactCSV({ fields: '*' })
+}
+
 onMounted(() => {
   fetchContacts()
 })
@@ -119,6 +125,9 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
+          <Button v-if="isExportPerm" severity="contrast" @click="onExportCSV">
+            {{ t('export-csv') }}
+          </Button>
           <RouterLink to="/user/contact/create" v-if="isCreatePerm">
             <Button severity="contrast">{{ t('create-one') }}</Button>
           </RouterLink>

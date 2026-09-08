@@ -196,6 +196,7 @@
   "action.not-participating": "You are not participating",
   "type-error": "Invalid value for type {type}, expected format: {validator}",
   "create-one": "Create a contact",
+  "export-csv": "Export to CSV",
   "import-file": "Import a file",
   "primary-field": "Primary key",
   "indexed-field": "Indexed key",
