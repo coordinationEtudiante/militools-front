@@ -18,7 +18,7 @@
       </div>
     </template>
     <template #content>
-      <div class="flex h-full min-h-0 flex-col gap-2 overflow-hidden">
+      <div class="flex h-full min-h-0 flex-col gap-2 overflow-auto">
         <!-- MARK: import -->
         <div class="mb-2 w-full border-b border-b-sky-500 text-lg">
           {{ t('create-contacts.import-title') }}
@@ -66,7 +66,7 @@
             })
           }}
         </div>
-        <table>
+        <table class="h-max">
           <tr class="border-b-2 border-white">
             <th>{{ t('column-name') }}</th>
             <th>{{ t('column-number-data') }}</th>
