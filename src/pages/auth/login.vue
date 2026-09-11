@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Button, Message } from 'primevue'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ServerSelection from '@/components/form/ServerSelection.vue'
 import { useUserStore } from '@/stores/user.store'
@@ -13,12 +13,16 @@ import { clearPhone } from '@/tools/phone.utils'
 const { t } = useI18n()
 const userStore = useUserStore()
 
-const phone = ref('')
-const password = ref('')
-
 const submitted = ref(false)
 const connecting = ref(false)
 const errored = ref<number>(200)
+
+const phone = ref('')
+const password = ref('')
+
+watch([phone, password], () => {
+  if (errored.value !== 200) errored.value = 200
+})
 
 const phoneError = computed(() => {
   if (submitted.value && phone.value.trim() === '') return true
@@ -75,11 +79,7 @@ async function loginUser() {
     </h1>
     <p class="mt-6 text-lg/8 text-gray-700">{{ t('login.subtitle') }}</p>
 
-    <InputPhone
-      v-model:phone="phone"
-      :disabled="connecting"
-      :invalid="phoneError"
-    />
+    <InputPhone v-model:phone="phone" :disabled="connecting" :invalid="phoneError" />
     <InputPassword
       v-model:password="password"
       :disabled="connecting"
@@ -91,8 +91,8 @@ async function loginUser() {
     <div class="gap-spacer" />
     <div class="gap-spacer" />
 
-    <Message v-if="userStore.errored" severity="error">
-      {{ t('error.login.error') }}
+    <Message v-if="errored !== 200" severity="error">
+      {{ errored === 401 ? t('error.login.incorrect') : t('error.login.error', { code: errored }) }}
     </Message>
     <Button type="submit" @click="loginUser" :disabled="userStore.loading">{{
       t('button.connect')

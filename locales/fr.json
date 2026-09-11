@@ -195,6 +195,7 @@
   "input.password": "Mot de passe",
   "input.phone": "Numéro de téléphone",
   "error.login.error": "Erreur de connexion. Vérifie ton numéro et ton mot de passe. Erreur {code}",
+  "error.login.incorrect": "Numéro ou mot de passe incorrect. Vérifie tes identifiants et réessaie.",
   "custom-server.error-format": "Le format de votre serveur doit être un serveur local en http ou public en https",
   "custom-server.placeholder": "https://monserveur.com",
   "login.create-account.title": "Créer un compte",

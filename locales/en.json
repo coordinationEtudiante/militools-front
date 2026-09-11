@@ -184,6 +184,7 @@
   "button.create-account": "Create account",
   "button.allready-an-account": "I already have an account",
   "error.login.error": "Connection error. Check your number and password. Error {code}",
+  "error.login.incorrect": "Incorrect number or password. Check your credentials and try again.",
   "error.duplicate-user": "An account already exists with this information",
   "error.server-error": "Server error ({code})",
   "custom-server": "Custom server",
