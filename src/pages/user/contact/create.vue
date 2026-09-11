@@ -6,13 +6,15 @@ import CreateField from '@/components/contacts/CreateField.vue'
 import MCard from '@/components/MCard.vue'
 import { router } from '@/router'
 import { useAreaStore } from '@/stores/area.store'
-import { Button, Divider, Select, SplitButton, Toast, ToggleSwitch } from 'primevue'
+import { Button, Divider, Message, Select, SplitButton, Toast, ToggleSwitch } from 'primevue'
 import { useToast } from 'primevue/usetoast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CirclePlus } from '@lucide/vue'
 import { usePermStore } from '@/stores/perm.store'
 import { clearPhone } from '@/tools/phone.utils'
+import { fetchError } from '@/errors/fetch.error'
+import { useEventListener } from '@vueuse/core'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -26,6 +28,13 @@ getPerms([
   ':area/contact/getContactFields',
   ':area/contact/getDuplicate',
 ])
+
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault()
+    createContactFn()
+  }
+})
 
 const fields = computed(() => area.fields)
 
@@ -104,6 +113,7 @@ async function createContactFn() {
       toast.add({
         severity: 'error',
         summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
+        detail: contactErrorDetail(result.error.value) || undefined,
         life: 3000,
       })
       return
@@ -132,15 +142,28 @@ async function createContactFn() {
       editMode.value = false
       autoCompletedContactId.value = null
     }
-  } catch {
+  } catch (e) {
     toast.add({
       severity: 'error',
       summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
+      detail: contactErrorDetail(e) || undefined,
       life: 3000,
     })
   } finally {
     isLoading.value = false
   }
+}
+
+function contactErrorDetail(error: unknown): string {
+  const message =
+    error instanceof fetchError ? error.message : error instanceof Error ? error.message : ''
+  const duplicate = message.match(/^Duplicate entry for primary field: (.+)$/)
+  if (duplicate) {
+    return t(editMode.value ? 'contact.edit.error.duplicate' : 'contact.create.error.duplicate', {
+      field: duplicate[1],
+    })
+  }
+  return message
 }
 
 function updateField(id: number, val: string) {
@@ -262,6 +285,9 @@ watch(
           <ToggleSwitch v-model="editMode" inputId="edit-existing-contact" />
           <span>{{ t('create-contact.edit-existing') }}</span>
         </label>
+        <Message v-if="editMode" severity="info" class="w-full">
+          {{ t('contact.edit.message') }}
+        </Message>
         <SplitButton
           :label="creationLabel === 'one' ? t('create-contact') : t('create-contacts')"
           @click="createContactFn"
