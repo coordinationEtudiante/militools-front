@@ -20,7 +20,7 @@ defineSlots<{
 
 <template>
   <section
-    :class="bgColor ?? 'bg-white'"
+    :class="bgColor ?? 'bg-surface-0 dark:bg-surface-900'"
     class="flex flex-col gap-2 overflow-scroll rounded-xl border border-gray-300 p-4"
   >
     <template v-if="!errorMessage">
