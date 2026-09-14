@@ -7,6 +7,7 @@ export interface Palette {
   primary: Record<string, string>
   light: Record<string, string>
   dark: Record<string, string>
+  accents?: Partial<Record<'success' | 'danger' | 'warn', Record<string, string>>>
 }
 
 export const palettes: Record<string, Palette> = {
@@ -104,6 +105,91 @@ export const palettes: Record<string, Palette> = {
       '950': '#232936',
     },
   },
+  coordo: {
+    label: 'Coordo',
+    primary: {
+      '50': '#e7e1ee',
+      '100': '#cfc3dd',
+      '200': '#b39fc9',
+      '300': '#997fb6',
+      '400': '#7a59a1',
+      '500': '#552a86',
+      '600': '#4b2576',
+      '700': '#402065',
+      '800': '#331950',
+      '900': '#26133c',
+      '950': '#180c26',
+    },
+    light: {
+      '0': '#ffffff',
+      '50': '#fcfbf9',
+      '100': '#f8f5f1',
+      '200': '#e7e4e0',
+      '300': '#d5d3cf',
+      '400': '#c1bfbc',
+      '500': '#a9a7a4',
+      '600': '#908e8c',
+      '700': '#757371',
+      '800': '#575654',
+      '900': '#373635',
+      '950': '#191918',
+    },
+    dark: {
+      '0': '#f6f3f8',
+      '50': '#ebe6f0',
+      '100': '#e0d8e7',
+      '200': '#cbbdd6',
+      '300': '#b5a2c5',
+      '400': '#937ea7',
+      '500': '#725b88',
+      '600': '#50376a',
+      '700': '#442c59',
+      '800': '#372247',
+      '900': '#2b1736',
+      '950': '#24132e',
+    },
+    accents: {
+      success: {
+        '50': '#e1f1ea',
+        '100': '#c4e3d5',
+        '200': '#a0d2bb',
+        '300': '#80c3a4',
+        '400': '#5ab189',
+        '500': '#2c9b68',
+        '600': '#27885c',
+        '700': '#21744e',
+        '800': '#1a5d3e',
+        '900': '#14462f',
+        '950': '#0c2b1d',
+      },
+      danger: {
+        '50': '#fbe3e8',
+        '100': '#f6c6d2',
+        '200': '#f1a4b7',
+        '300': '#ec859e',
+        '400': '#e66181',
+        '500': '#df345e',
+        '600': '#c42e53',
+        '700': '#a72747',
+        '800': '#861f38',
+        '900': '#64172a',
+        '950': '#3e0f1a',
+      },
+      warn: {
+        '50': '#f9eee0',
+        '100': '#f4ddc1',
+        '200': '#edc89b',
+        '300': '#e7b67a',
+        '400': '#e0a052',
+        '500': '#D78521',
+        '600': '#bd751d',
+        '700': '#a16419',
+        '800': '#815014',
+        '900': '#613c0f',
+        '950': '#3c2509',
+      },
+    },
+  },
 }
 
 export type PaletteKey = keyof typeof palettes
@@ -121,17 +207,19 @@ export const currentPalette = computed({
 
 export function buildPreset(key: PaletteKey) {
   const palette = palettes[key]
-  return key === 'aura' || !palette
-    ? Aura
-    : definePreset(Aura, {
-        semantic: {
-          primary: palette.primary,
-          colorScheme: {
-            light: { surface: palette.light },
-            dark: { surface: palette.dark },
-          },
-        },
-      })
+  if (key === 'aura' || !palette) return Aura
+
+  const { primary, light, dark, accents } = palette
+  return definePreset(Aura, {
+    semantic: {
+      primary,
+      ...accents,
+      colorScheme: {
+        light: { surface: light },
+        dark: { surface: dark },
+      },
+    },
+  })
 }
 
 export function applyPalette(key: PaletteKey) {
