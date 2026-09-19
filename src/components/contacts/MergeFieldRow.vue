@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MergeField } from '@/types/merge.type'
-import { Check } from '@lucide/vue'
+import { Check, ChevronsLeft, ChevronsRight } from '@lucide/vue'
 import { Button, InputText } from 'primevue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,6 +19,7 @@ const { t } = useI18n()
 
 const finalState = computed(() => {
   const { local, server, final } = props.field
+  console.log({ local, server, final }, { same: local && server && local === server })
   if (local && server && local === server) return 'same'
   if (final === local || final === server) return 'default'
   return 'custom'
@@ -33,7 +34,14 @@ const finalClass = computed(() => {
 
 <template>
   <!-- mobile -->
-  <div class="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-3 md:hidden">
+  <div
+    class="flex flex-col gap-2 rounded-xl p-3 md:hidden"
+    :class="
+      finalState === 'same'
+        ? 'border-2 border-emerald-500 bg-emerald-50'
+        : 'border border-gray-200 bg-white'
+    "
+  >
     <div class="flex items-center justify-between gap-2">
       <span class="truncate text-sm font-semibold text-gray-700">{{ field.name }}</span>
       <Check v-if="field.autoResolved" class="h-4 w-4 shrink-0 text-emerald-500" />
@@ -46,11 +54,14 @@ const finalClass = computed(() => {
         variant="text"
         severity="info"
         size="small"
-        icon="pi pi-angle-double-right"
         v-tooltip="t('merge.use-local')"
         :disabled="!field.local || field.final === field.local"
         @click="emit('apply-local')"
-      />
+      >
+        <template #icon>
+          <ChevronsRight class="h-4 w-4" />
+        </template>
+      </Button>
     </div>
 
     <div class="flex items-center gap-2">
@@ -71,17 +82,25 @@ const finalClass = computed(() => {
         variant="text"
         severity="info"
         size="small"
-        icon="pi pi-angle-double-left"
         v-tooltip="t('merge.use-server')"
         :disabled="!field.server || field.final === field.server"
         @click="emit('apply-server')"
-      />
+      >
+        <template #icon>
+          <ChevronsLeft class="h-4 w-4" />
+        </template>
+      </Button>
     </div>
   </div>
 
   <!-- desktop -->
   <div
-    class="hidden border border-gray-200 bg-white px-3 py-2 md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:items-center md:gap-0 md:rounded-none md:border-x-0 md:border-t-0 md:border-b"
+    class="hidden px-3 py-2 md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:items-center md:gap-0 md:rounded-none md:border-x-0 md:border-t-0 md:border-b"
+    :class="
+      finalState === 'same'
+        ? 'border-2 border-emerald-500 bg-emerald-50'
+        : 'border border-gray-200 bg-white'
+    "
   >
     <div class="flex items-center gap-1.5 md:pr-2">
       <span class="truncate text-sm font-medium text-gray-700">{{ field.name }}</span>
@@ -97,11 +116,14 @@ const finalClass = computed(() => {
         variant="text"
         severity="info"
         size="small"
-        icon="pi pi-angle-double-right"
         v-tooltip="t('merge.use-local')"
         :disabled="!field.local || field.final === field.local"
         @click="emit('apply-local')"
-      />
+      >
+        <template #icon>
+          <ChevronsRight class="h-4 w-4" />
+        </template>
+      </Button>
     </div>
 
     <div>
@@ -119,11 +141,14 @@ const finalClass = computed(() => {
         variant="text"
         severity="info"
         size="small"
-        icon="pi pi-angle-double-left"
         v-tooltip="t('merge.use-server')"
         :disabled="!field.server || field.final === field.server"
         @click="emit('apply-server')"
-      />
+      >
+        <template #icon>
+          <ChevronsLeft class="h-4 w-4" />
+        </template>
+      </Button>
     </div>
 
     <div class="md:pl-2">

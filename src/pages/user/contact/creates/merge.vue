@@ -98,6 +98,15 @@
             {{ t('no-duplicate') }}
           </div>
           <div v-else class="flex flex-1 flex-col gap-2 overflow-auto md:gap-0">
+            <Message
+              v-if="selectedKeptBoth"
+              severity="info"
+              variant="simple"
+              size="small"
+              class="md:rounded-b-none"
+            >
+              {{ t('keep-both-info') }}
+            </Message>
             <!-- desktop header -->
             <div
               class="bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
@@ -123,6 +132,13 @@
           <div class="flex w-full flex-wrap items-center justify-center gap-2">
             <Button :label="t('aplicate-local')" severity="secondary" @click="applyAllLocal" />
             <Button :label="t('aplicate-server')" severity="secondary" @click="applyAllServer" />
+            <Button
+              :label="t('keep-both')"
+              variant="outlined"
+              severity="secondary"
+              :disabled="!selectedDuplicate || selectedKeptBoth"
+              @click="keepBothAndNext"
+            />
             <Button
               :label="t('abort')"
               variant="outlined"
@@ -223,6 +239,7 @@ function finishProgress() {
 
 const selectedDuplicate = computed(() => duplicates.value[selectedIdx.value])
 const selectedLocal = computed(() => values.value[selectedDuplicate.value?.index ?? -1] ?? {})
+const selectedKeptBoth = computed(() => selectedDuplicate.value?.status === 'keep-both')
 const unresolvedCount = computed(
   () => duplicates.value.filter((d) => d.status === 'to-resolved').length,
 )
@@ -277,6 +294,7 @@ function selectDuplicate(i: number) {
 function statusSeverity(status: MergeDuplicate['status']) {
   if (status === 'to-resolved') return 'warn'
   if (status === 'resolved') return 'success'
+  if (status === 'keep-both') return 'info'
   return 'info'
 }
 
@@ -309,9 +327,27 @@ function saveAndNext() {
   if (!dup) return
 
   dup.status = 'resolved'
+  goToNextDuplicate()
+}
 
+function keepBothAndNext() {
+  const dup = selectedDuplicate.value
+  if (!dup) return
+
+  dup.status = 'keep-both'
+
+  toast.add({
+    severity: 'info',
+    summary: t('keep-both-done'),
+    life: 3000,
+  })
+
+  goToNextDuplicate()
+}
+
+function goToNextDuplicate() {
   const next = duplicates.value.findIndex(
-    (d, i) => i > selectedIdx.value && d.status !== 'resolved',
+    (d, i) => i > selectedIdx.value && d.status !== 'resolved' && d.status !== 'keep-both',
   )
   if (next !== -1) {
     selectDuplicate(next)
@@ -325,19 +361,23 @@ function saveAndNext() {
 }
 
 function goToRecap() {
-  const exclude = new Set(duplicates.value.map((d) => d.index))
+  const exclude = new Set(
+    duplicates.value.filter((d) => d.status !== 'keep-both').map((d) => d.index),
+  )
   DataStorage.setArray(
     cleanContactData(values.value.filter((_, index) => !exclude.has(index))),
     DataStorage.getType(),
   )
   DataStorage.setEdit(
-    duplicates.value.map((d) => ({
-      contactId: d.remoteIndex,
-      data: d.duplicateOf.map((field) => ({
-        ...field,
-        value: values.value[d.index]?.[field.name] ?? field.value,
+    duplicates.value
+      .filter((d) => d.status !== 'keep-both')
+      .map((d) => ({
+        contactId: d.remoteIndex,
+        data: d.duplicateOf.map((field) => ({
+          ...field,
+          value: values.value[d.index]?.[field.name] ?? field.value,
+        })),
       })),
-    })),
   )
 
   router.push({ name: '/user/contact/creates/recap' })
@@ -374,13 +414,15 @@ onMounted(async () => {
       const chunk = allValues.slice(i, i + CHUNK_SIZE)
       showProgress(`${i + 1}/${allValues.length}`)
 
-      const fetch = await fetchResource(':area/contact/getDuplicate', {
+      const res = await fetchResource(':area/contact/getDuplicate', {
         body: { data: FieldsToIds(chunk) },
       })
 
-      totalDuplicate += fetch.nbDuplicate
+      if (!res) throw new Error('getDuplicate returned an empty response')
+
+      totalDuplicate += res.nbDuplicate
       allDuplicates.push(
-        ...fetch.duplicates.map((d) => ({
+        ...res.duplicates.map((d) => ({
           ...d,
           index: d.index + i,
           status: 'to-resolved' as const,
@@ -401,8 +443,8 @@ onMounted(async () => {
     }
     errored.value = false
   } catch (e) {
+    console.error(e)
     errored.value = true
-    throw e
   } finally {
     finishProgress()
     loading.value = false

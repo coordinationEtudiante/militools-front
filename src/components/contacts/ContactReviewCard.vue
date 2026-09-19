@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ContactListInput from '@/components/contacts/ContactListInput.vue'
 import { isFieldValueValid } from '@/tools/contactValidation.utils'
-import { TriangleAlert, Users } from '@lucide/vue'
+import { CircleCheck, TriangleAlert, Users } from '@lucide/vue'
 import { Tag } from 'primevue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -54,7 +54,6 @@ function commitField(fieldName: string) {
       <Tag
         :severity="errored ? 'danger' : 'success'"
         :value="errored ? t('error') : t('create-contacts.valid')"
-        :icon="errored ? 'pi pi-exclamation-triangle' : 'pi pi-check'"
       >
         <template #icon>
           <TriangleAlert v-if="errored" />

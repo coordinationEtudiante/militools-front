@@ -161,6 +161,10 @@
   "duplication.auto-resolved": "Résolu automatiquement",
   "duplication.resolved": "Résolu",
   "duplication.to-resolved": "À résoudre",
+  "duplication.keep-both": "Conserver les deux",
+  "keep-both": "Conserver les deux",
+  "keep-both-info": "Ce doublon sera conservé : la version locale sera créée comme nouveau contact (modifiable ci-dessous) et la version serveur restera inchangée.",
+  "keep-both-done": "Doublon conservé: le contact local sera créé comme nouveau contact",
   "no-duplicate": "Aucun doublon à fusionner",
   "merge-unresolved": "{nb} doublons à résoudre",
   "merge-all-resolved": "Tous les doublons ont été résolus",
@@ -268,5 +272,6 @@
   "reload.credit": "Recharger le crédit",
   "reload.stats": "Recharger les stats",
   "field.freeze": "Geler le champ",
-  "field.unfreeze": "Dégele le champ"
+  "field.unfreeze": "Dégele le champ",
+  "modal.creat-field.defualt-value-variable": "Vous pouvez utiliser des variable. Comme {date}, {hours}, {userName} {fieldName} fieldName et le nom d'un champs. cella sera automatriquement apliqué. cella peut etre utile pour le nom par exemple"
 }

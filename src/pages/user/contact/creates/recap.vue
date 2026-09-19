@@ -27,12 +27,11 @@
       >
         <template #header>
           <div class="pb-4 text-end">
-            <Button
-              icon="pi pi-external-link"
-              severity="contrast"
-              label="Export"
-              @click="exportCSV()"
-            />
+            <Button severity="contrast" label="Export" @click="exportCSV()">
+              <template #icon>
+                <ExternalLink class="h-4 w-4" />
+              </template>
+            </Button>
           </div>
         </template>
         <Column field="message" :header="t('reason')" :exportHeader="t('reason')" sortable />
@@ -58,6 +57,7 @@ import { DataStorage } from '@/stores/contact/creates/dataStorage'
 import { usePermStore } from '@/stores/perm.store'
 import { FieldsToIds } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
+import { ExternalLink } from '@lucide/vue'
 import { Button, Card, Column, DataTable, Message, Toast, useToast } from 'primevue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

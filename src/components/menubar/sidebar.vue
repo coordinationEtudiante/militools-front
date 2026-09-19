@@ -23,9 +23,7 @@ const seed = computed(() => String(userStore.connected ? userStore.user.id : 0))
 const area = computed(() => areaStore.getArea())
 const actionPerm = computed(() => permStore.getPerm(':area/action/list', false))
 const searchPerm = computed(() => permStore.getPerm(':area/contact/getContacts', false))
-const contactPerm = computed(
-  () => permStore.getPerm(':area/contact/getContacts', false) === 'admin',
-)
+const contactPerm = computed(() => permStore.getPerm(':area/contact/getContacts', false))
 
 const selectedArea = ref(area.value.id)
 const po = ref()

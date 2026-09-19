@@ -72,13 +72,16 @@ async function handleSubmit() {
   if (!defaultValid.value || !typeValid.value || !nameValid.value) return
 
   try {
-    const result = createContactFields({
-      name: fieldName.value,
-      description: fieldDescription.value,
-      type: typeValue.value,
-      significance: significance.value as 'primary' | 'indexed' | 'other',
-      defaultValue: fieldDefaultValue.value || undefined,
-    }, false)
+    const result = createContactFields(
+      {
+        name: fieldName.value,
+        description: fieldDescription.value,
+        type: typeValue.value,
+        significance: significance.value as 'primary' | 'indexed' | 'other',
+        defaultValue: fieldDefaultValue.value || undefined,
+      },
+      false,
+    )
     await result.doFetch()
 
     if (result.errorCode.value && result.errorCode.value !== 200) {
@@ -153,6 +156,9 @@ async function handleSubmit() {
 
       <div class="flex flex-col gap-1">
         <label for="fieldDefaultValue">{{ t('modal.creat-field.new-field-default-value') }}</label>
+        <Message severity="info" variant="simple">
+          {{ t('modal.creat-field.defualt-value-variable') }}
+        </Message>
         <InputText
           id="fieldDefaultValue"
           v-model="fieldDefaultValue"

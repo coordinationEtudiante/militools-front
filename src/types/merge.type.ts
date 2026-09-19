@@ -12,6 +12,6 @@ export type MergeDuplicate = {
   index: number
   remoteIndex: number
   duplicateOf: { id: number; name: string; value: string }[]
-  status: 'auto-resolved' | 'resolved' | 'to-resolved'
+  status: 'auto-resolved' | 'resolved' | 'to-resolved' | 'keep-both'
   summary?: string
 }
