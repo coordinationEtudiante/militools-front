@@ -9,10 +9,12 @@ const isUser = computed(() => router.currentRoute.value.name?.startsWith('/user'
 </script>
 
 <template>
-  <MainLayout class="min-h-full">
-    <template v-if="isUser" #sidebar>
-      <Sidebar />
-    </template>
-    <RouterView class="h-full w-full" />
-  </MainLayout>
+  <UApp>
+    <MainLayout class="min-h-full">
+      <template v-if="isUser" #sidebar>
+        <Sidebar />
+      </template>
+      <RouterView class="h-full w-full" />
+    </MainLayout>
+  </UApp>
 </template>

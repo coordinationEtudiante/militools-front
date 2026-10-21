@@ -3,11 +3,24 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import VueRouter from 'unplugin-vue-router/vite'
+import ui from '@nuxt/ui/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }), vue(), vueDevTools()],
+  plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }), vue(), vueDevTools(), ui({
+    autoImport: false,
+    colorMode: false,
+    ui: {
+      colors: {
+        primary: 'emerald',
+        neutral: 'slate',
+      }
+    },
+    icon: {
+      clientBundle: { scan: true }
+    }
+  })],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

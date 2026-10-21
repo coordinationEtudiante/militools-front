@@ -12,6 +12,7 @@ import './index.css'
 import { router } from './router'
 import { buildPreset, storedPalette } from './theme/palettes'
 import './theme/useTheme'
+import ui from '@nuxt/ui/vue-plugin'
 
 const browserLanguage = navigator.language.split('-')[0]
 const supportedLanguages = ['fr', 'en']
@@ -48,5 +49,6 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.use(ToastService)
+app.use(ui)
 
 app.mount('#app')

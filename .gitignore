@@ -39,3 +39,7 @@ __screenshots__/
 *.timestamp-*-*.mjs
 
 .env
+
+# Nuxt UI
+auto-imports.d.ts
+components.d.ts
