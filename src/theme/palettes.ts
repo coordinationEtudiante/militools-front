@@ -2,21 +2,20 @@ import { computed, ref } from 'vue'
 import { definePreset, usePreset } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
 
+export type Ramp = Record<string, string>
+
 export interface Palette {
   label: string
-  primary: Record<string, string>
-  light: Record<string, string>
-  dark: Record<string, string>
-  accents?: Partial<Record<'success' | 'danger' | 'warn', Record<string, string>>>
+  /** couleur de marque : 50 (clair) → 950 (foncé) */
+  primary: Ramp
+  /** rampe neutre du MODE CLAIR : 0 = blanc, 50 → 950 (foncé) */
+  light: Ramp
+  /** rampe neutre du MODE SOMBRE : 0 = texte clair, 900 = fond, 950 = le plus foncé */
+  dark: Ramp
+  accents?: Partial<Record<'success' | 'danger' | 'warn', Ramp>>
 }
 
 export const palettes: Record<string, Palette> = {
-  aura: {
-    label: 'Aura (défaut)',
-    primary: {},
-    light: {},
-    dark: {},
-  },
   dracula: {
     label: 'Dracula',
     primary: {
@@ -207,17 +206,22 @@ export const currentPalette = computed({
 
 export function buildPreset(key: PaletteKey) {
   const palette = palettes[key]
-  if (key === 'aura' || !palette) return Aura
+  if (!palette) return Aura
 
   const { primary, light, dark, accents } = palette
+  const shades = new Set([...Object.keys(light), ...Object.keys(dark)])
+
   return definePreset(Aura, {
     semantic: {
       primary,
       ...accents,
-      colorScheme: {
-        light: { surface: light },
-        dark: { surface: dark },
-      },
+      // PrimeVue 5 : une seule rampe `surface`, chaque nuance est un light-dark(clair, sombre)
+      surface: Object.fromEntries(
+        [...shades].map((shade) => [
+          shade,
+          `light-dark(${light[shade]}, ${dark[shade]})`,
+        ]),
+      ),
     },
   })
 }
@@ -234,5 +238,5 @@ export function applyPalette(key: PaletteKey) {
 
 export function storedPalette(): PaletteKey {
   const stored = localStorage.getItem('mt-palette')
-  return stored && stored in palettes ? (stored as PaletteKey) : 'aura'
+  return stored && stored in palettes ? (stored as PaletteKey) : 'coordo'
 }
