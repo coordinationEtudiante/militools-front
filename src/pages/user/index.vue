@@ -7,7 +7,6 @@ import WelcomeName from '@/components/WelcomeName.vue'
 import { router } from '@/router'
 import { useActionStore } from '@/stores/action.store'
 import { usePermStore } from '@/stores/perm.store'
-import { Button } from 'primevue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -24,21 +23,21 @@ const createPerm = computed(() => getPerm(':area/action/list', false))
   <div class="flex w-full min-w-0 flex-col gap-2 overflow-x-hidden">
     <div class="mb-4 flex min-w-0 flex-col gap-2">
       <!-- header -->
-      <h1 class="text-6xl tracking-tighter text-balance text-gray-950">
+      <h1 class="text-6xl tracking-tighter text-balance text-highlighted">
         <WelcomeName />
       </h1>
-      <p class="text-base text-gray-700">
+      <p class="text-base text-default">
         <PresentationText />
       </p>
     </div>
-    <div class="flex flex-col gap-2 rounded-xl border border-gray-300 p-4">
+    <div class="flex flex-col gap-2 rounded-xl border border-default p-4">
       <!-- page -->
       <div class="flex w-full flex-row-reverse gap-2 p-2">
         <!-- action -->
         <RefreshButton :refresh="actionStore.reloadActions" />
-        <Button severity="contrast" @click="router.push('/user/action/create')" v-if="createPerm">
+        <UButton color="neutral" variant="solid" @click="router.push('/user/action/create')" v-if="createPerm">
           {{ t('new-action') }}
-        </Button>
+        </UButton>
       </div>
       <!-- page -->
       <MCard :title="t('your-registered-action')">
