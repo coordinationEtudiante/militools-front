@@ -6,8 +6,8 @@ import { useAreaStore } from '@/stores/area.store'
 import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
 import { Lock, Unlock } from '@lucide/vue'
-import { AutoComplete, InputText, Message, ToggleSwitch } from 'primevue'
-import { computed, ref, watch, type InputHTMLAttributes } from 'vue'
+import { AutoComplete } from 'primevue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 interface Suggestion {
@@ -51,11 +51,12 @@ const area = useAreaStore()
 const validator = computed(() => area.contactTypeValidator.get(props.type) ?? /.*/)
 const sig = computed(() => props.significance)
 
-const inputAttrs = computed<InputHTMLAttributes | undefined>(() => {
-  if (props.type == 'email') return { type: 'email', inputmode: 'email' }
-  if (props.type == 'integer') return { type: 'text', inputmode: 'numeric' }
-  if (props.type == 'number') return { type: 'text', inputmode: 'decimal' }
-  return undefined
+const inputAttrs = computed(() => {
+  const base = { disabled: props.frozen }
+  if (props.type == 'email') return { ...base, type: 'email' as const, inputmode: 'email' as const }
+  if (props.type == 'integer') return { ...base, type: 'text' as const, inputmode: 'numeric' as const }
+  if (props.type == 'number') return { ...base, type: 'text' as const, inputmode: 'decimal' as const }
+  return { ...base, type: 'text' as const }
 })
 
 const inputValue = ref<string | Suggestion>(props.modelValue ?? props.defaultValue ?? '')
@@ -208,21 +209,21 @@ async function handleSelect(selected: Suggestion) {
 </script>
 
 <template>
-  <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+  <div class="flex items-start gap-3 rounded-lg border border-default bg-elevated p-3">
     <div class="flex flex-1 flex-col gap-1">
       <div class="mb-1 flex items-center gap-2">
-        <span class="text-sm font-medium text-gray-700">{{ name }}</span>
+        <span class="text-sm font-medium text-default">{{ name }}</span>
         <i
           v-if="sig === 'primary'"
-          class="pi pi-id-card text-xs text-gray-400"
+          class="pi pi-id-card text-xs text-muted"
           v-tooltip="t('primary.description')"
         />
         <i
           v-else-if="sig === 'recomended'"
-          class="pi pi-bolt text-xs text-gray-400"
+          class="pi pi-bolt text-xs text-muted"
           v-tooltip="t('recomended.description')"
         />
-        <i v-else class="pi pi-tag text-xs text-gray-400" v-tooltip="t('other.description')" />
+        <i v-else class="pi pi-tag text-xs text-muted" v-tooltip="t('other.description')" />
       </div>
 
       <div
@@ -235,11 +236,9 @@ async function handleSelect(selected: Suggestion) {
         @keydown.space.prevent="toggleBoolean"
         @keydown.enter.prevent="toggleBoolean"
       >
-        <ToggleSwitch
+        <USwitch
           v-model="booleanValue"
-          variant="filled"
-          :inputId="String(id)"
-          :tabindex="-1"
+          :disabled="frozen"
         />
       </div>
 
@@ -266,13 +265,12 @@ async function handleSelect(selected: Suggestion) {
         @search="searchSuggestions"
       />
 
-      <InputText
+      <UInput
         v-else-if="sig === 'other'"
         :id="String(id)"
         v-model="displayValue"
         :invalid="errored"
-        :input-props="inputAttrs"
-        :tabindex="frozen ? -1 : undefined"
+        v-bind="inputAttrs"
         fluid
       />
 
@@ -294,7 +292,7 @@ async function handleSelect(selected: Suggestion) {
             <span class="font-medium">{{ slotProps.option.output }}</span>
             <span
               v-if="sig !== 'primary' && slotProps.option.primaryFields?.length"
-              class="text-xs text-gray-500"
+              class="text-xs text-muted"
             >
               {{
                 slotProps.option.primaryFields
@@ -304,7 +302,7 @@ async function handleSelect(selected: Suggestion) {
             </span>
             <span
               v-else-if="sig === 'primary' && primaryDetail(slotProps.option)"
-              class="text-xs text-gray-500"
+              class="text-xs text-muted"
             >
               {{
                 `${primaryDetail(slotProps.option)!.name}: ${primaryDetail(slotProps.option)!.value}`
@@ -314,21 +312,21 @@ async function handleSelect(selected: Suggestion) {
         </template>
       </AutoComplete>
 
-      <Message v-if="errored" severity="error" size="small" variant="simple">
+      <UAlert v-if="errored" color="error" size="xs">
         {{ t('validation.error') }}
-      </Message>
+      </UAlert>
     </div>
 
     <div v-if="description || showLock" class="mt-2 flex items-center gap-1">
       <i
         v-if="description"
-        class="pi pi-question-circle cursor-help text-gray-400"
+        class="pi pi-question-circle cursor-help text-muted"
         v-tooltip="description"
       />
       <button
         v-if="showLock"
         type="button"
-        class="cursor-pointer rounded p-0.5 text-gray-400 transition-colors hover:text-gray-700"
+        class="cursor-pointer rounded p-0.5 text-muted transition-colors hover:text-default"
         :class="{ 'text-amber-500 hover:text-amber-600': frozen }"
         :title="frozen ? t('field.unfreeze') : t('field.freeze')"
         @click="toggleFrozen"
