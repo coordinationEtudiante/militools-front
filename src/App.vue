@@ -10,6 +10,7 @@ const isUser = computed(() => router.currentRoute.value.name?.startsWith('/user'
 
 <template>
   <UApp>
+    <UToaster />
     <MainLayout class="min-h-full">
       <template v-if="isUser" #sidebar>
         <Sidebar />
