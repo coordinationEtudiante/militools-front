@@ -6,8 +6,7 @@ import CreateField from '@/components/contacts/CreateField.vue'
 import MCard from '@/components/MCard.vue'
 import { router } from '@/router'
 import { useAreaStore } from '@/stores/area.store'
-import { Button, Divider, Message, Select, SplitButton, Toast, ToggleSwitch } from 'primevue'
-import { useToast } from 'primevue/usetoast'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CirclePlus } from '@lucide/vue'
@@ -76,13 +75,13 @@ watch(
 const buttonItems = computed(() => [
   {
     label: t('create-contact'),
-    command: () => {
+    onSelect: () => {
       creationLabel.value = 'one'
     },
   },
   {
     label: t('create-contacts'),
-    command: () => {
+    onSelect: () => {
       creationLabel.value = 'many'
     },
   },
@@ -111,18 +110,18 @@ async function createContactFn() {
 
     if (result.errorCode.value && result.errorCode.value !== 200) {
       toast.add({
-        severity: 'error',
-        summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
-        detail: contactErrorDetail(result.error.value) || undefined,
-        life: 3000,
+        color: 'error',
+        title: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
+        description: contactErrorDetail(result.error.value) || undefined,
+        duration: 3000,
       })
       return
     }
 
     toast.add({
-      severity: 'success',
-      summary: editMode.value ? t('contact.edit.success') : t('contact.create.success'),
-      life: 3000,
+      color: 'success',
+      title: editMode.value ? t('contact.edit.success') : t('contact.create.success'),
+      duration: 3000,
     })
 
     if (creationLabel.value === 'one') {
@@ -144,10 +143,10 @@ async function createContactFn() {
     }
   } catch (e) {
     toast.add({
-      severity: 'error',
-      summary: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
-      detail: contactErrorDetail(e) || undefined,
-      life: 3000,
+      color: 'error',
+      title: editMode.value ? t('contact.edit.error') : t('contact.create.error'),
+      description: contactErrorDetail(e) || undefined,
+      duration: 3000,
     })
   } finally {
     isLoading.value = false
@@ -209,23 +208,22 @@ watch(
 </script>
 
 <template>
-  <Toast />
   <MCard class="w-full">
     <template #header>
-      <h2 class="text-2xl tracking-tighter text-balance text-gray-950">
+      <h2 class="text-2xl tracking-tighter text-balance text-highlighted">
         {{ t('create-contact.title') }}
       </h2>
     </template>
 
     <div class="flex flex-col gap-4">
-      <p class="text-sm text-gray-600">
+      <p class="text-sm text-muted">
         {{ t('contact.creation.summary') }}
       </p>
 
       <CreateField v-model:visible="showCreateFieldsModal" />
 
       <div v-if="fields.length === 0" class="py-4">
-        <Button @click="toggleModalCreateField">{{ t('no-fields-open-modal') }}</Button>
+        <UButton @click="toggleModalCreateField">{{ t('no-fields-open-modal') }}</UButton>
       </div>
 
       <div class="order-2 flex flex-col flex-wrap gap-4 md:flex-row">
@@ -280,75 +278,82 @@ watch(
       <div class="order-7 flex flex-col items-center gap-4 pt-8">
         <label
           v-if="autoCompletedContactId !== null"
-          class="flex cursor-pointer items-center gap-2 text-sm text-gray-700"
+          class="flex cursor-pointer items-center gap-2 text-sm text-default"
         >
-          <ToggleSwitch v-model="editMode" inputId="edit-existing-contact" />
+          <USwitch v-model="editMode" />
           <span>{{ t('create-contact.edit-existing') }}</span>
         </label>
-        <Message v-if="editMode" severity="info" class="w-full">
+        <UAlert v-if="editMode" color="info" class="w-full">
           {{ t('contact.edit.message') }}
-        </Message>
-        <SplitButton
-          :label="creationLabel === 'one' ? t('create-contact') : t('create-contacts')"
-          @click="createContactFn"
-          :model="buttonItems"
-          :disabled="isCreateButtonDisabled || isLoading"
-        />
+        </UAlert>
+        <div class="flex items-center gap-2">
+          <UButton
+            color="primary"
+            variant="solid"
+            :disabled="isCreateButtonDisabled || isLoading"
+            @click="createContactFn"
+          >
+            {{ creationLabel === 'one' ? t('create-contact') : t('create-contacts') }}
+          </UButton>
+          <UDropdownMenu :items="buttonItems">
+            <UButton color="primary" variant="solid" :disabled="isCreateButtonDisabled || isLoading" icon="i-lucide-chevron-down" />
+          </UDropdownMenu>
+        </div>
       </div>
 
-      <Divider class="order-1" align="left" type="solid">
+      <USeparator class="order-1">
         <div class="flex items-center gap-2">
           <span>{{ t('primary.description') }}</span>
-          <Select
+          <USelectMenu
             multiple
             v-model="selectedPrimaryFields"
-            :options="area.primaryFields"
-            optionLabel="name"
-            filter
-            :maxSelectedLabels="3"
+            :items="area.primaryFields as any"
+            value-key="id"
+            label-key="name"
+            :max="3"
             class="min-w-48"
           />
-          <Button severity="secondary" text @click="toggleModalCreateField">
+          <UButton variant="ghost" color="neutral" @click="toggleModalCreateField">
             <CirclePlus />
-          </Button>
+          </UButton>
         </div>
-      </Divider>
+      </USeparator>
 
-      <Divider class="order-3" align="left" type="solid">
+      <USeparator class="order-3">
         <div class="flex items-center gap-2">
           <span>{{ t('recomended.description') }}</span>
-          <Select
+          <USelectMenu
             multiple
             v-model="selectedIndexedFields"
-            :options="area.indexedFields"
-            optionLabel="name"
-            filter
-            :maxSelectedLabels="3"
+            :items="area.indexedFields as any"
+            value-key="id"
+            label-key="name"
+            :max="3"
             class="min-w-48"
           />
-          <Button severity="secondary" text @click="toggleModalCreateField">
+          <UButton variant="ghost" color="neutral" @click="toggleModalCreateField">
             <CirclePlus />
-          </Button>
+          </UButton>
         </div>
-      </Divider>
+      </USeparator>
 
-      <Divider class="order-5" align="left" type="solid">
+      <USeparator class="order-5">
         <div class="flex items-center gap-2">
           <span>{{ t('other.description') }}</span>
-          <Select
+          <USelectMenu
             multiple
             v-model="selectedOtherFields"
-            :options="area.otherFields"
-            optionLabel="name"
-            filter
-            :maxSelectedLabels="3"
+            :items="area.otherFields as any"
+            value-key="id"
+            label-key="name"
+            :max="3"
             class="min-w-48"
           />
-          <Button severity="secondary" text @click="toggleModalCreateField">
+          <UButton variant="ghost" color="neutral" @click="toggleModalCreateField">
             <CirclePlus />
-          </Button>
+          </UButton>
         </div>
-      </Divider>
+      </USeparator>
     </div>
   </MCard>
 </template>
