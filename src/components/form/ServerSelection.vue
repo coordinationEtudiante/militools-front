@@ -2,61 +2,47 @@
   <div
     class="server-selection flex flex-col gap-1"
     :class="{
-      'rounded-md border border-gray-300 p-1':
+      'rounded-md border border-default p-1':
         serverSelection === t('custom-server') || helperVisible,
     }"
   >
-    <Message v-if="helperVisible" severity="info">
+    <UAlert v-if="helperVisible" color="info">
       {{ t('server-selection.helper') }}
-    </Message>
-    <InputGroup>
-      <Select
+    </UAlert>
+    <div class="flex gap-2">
+      <USelect
         v-model="serverSelection"
-        :options="serverOptions"
+        :items="serverOptions"
         :placeholder="t('server-selection.placeholder')"
         :disabled="disabled"
-        fluid
+        class="flex-1"
       />
-      <InputGroupAddon>
-        <Button severity="info" @click="toggle" :disabled="disabled">
-          <Info class="h-4 w-4" />
-        </Button>
-      </InputGroupAddon>
-    </InputGroup>
-    <FloatLabel variant="on" v-if="serverSelection === t('custom-server')">
-      <IconField>
-        <InputIcon>
+      <UButton color="info" variant="solid" @click="toggle" :disabled="disabled">
+        <Info class="h-4 w-4" />
+      </UButton>
+    </div>
+    <UFormField v-if="serverSelection === t('custom-server')" :label="t('input.custom-server')">
+      <UInput
+        id="custom-server"
+        v-model="customServer"
+        :placeholder="t('custom-server.placeholder')"
+        :invalid="customServerError"
+        :disabled="disabled"
+        fluid
+      >
+        <template #leading>
           <Cloud class="h-4 w-4" />
-        </InputIcon>
-        <InputText
-          v-model="customServer"
-          :placeholder="t('custom-server.placeholder')"
-          :invalid="customServerError"
-          id="custom-server"
-          fluid
-          :disabled="disabled"
-        />
-      </IconField>
-      <label for="custom-server">{{ t('input.custom-server') }}</label>
-    </FloatLabel>
+        </template>
+      </UInput>
+    </UFormField>
 
-    <Message v-if="customServerError" severity="error">
+    <UAlert v-if="customServerError" color="error">
       {{ t('custom-server.error-format') }}
-    </Message>
+    </UAlert>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  FloatLabel,
-  IconField,
-  InputGroup,
-  InputGroupAddon,
-  InputIcon,
-  InputText,
-  Message,
-  Select,
-} from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Cloud, Info } from '@lucide/vue'
