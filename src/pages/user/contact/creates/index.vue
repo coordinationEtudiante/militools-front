@@ -1,26 +1,19 @@
 <template>
-  <Toast />
   <CreateField v-model:visible="showCreateFieldsModal" />
-  <Card
-    class="h-full w-full overflow-hidden"
-    :pt="{
-      body: { class: 'h-full flex flex-col min-h-0' },
-      content: { class: 'h-full flex flex-col min-h-0 overflow-hidden' },
-    }"
-  >
+  <UCard class="h-full w-full overflow-hidden">
     <template #title>{{ t('create-contacts.title') }}</template>
     <template #header>
       <!-- progress bar -->
       <div class="row flex h-2 w-full gap-4 p-2">
-        <div class="h-2 w-full rounded-full bg-sky-500"></div>
-        <div class="h-2 w-full rounded-full bg-sky-50"></div>
-        <div class="h-2 w-full rounded-full bg-sky-50"></div>
+        <div class="h-2 w-full rounded-full bg-primary"></div>
+        <div class="h-2 w-full rounded-full bg-primary/20"></div>
+        <div class="h-2 w-full rounded-full bg-primary/20"></div>
       </div>
     </template>
     <template #content>
       <div class="flex h-full min-h-0 flex-col gap-2 overflow-auto">
         <!-- MARK: import -->
-        <div class="mb-2 w-full border-b border-b-sky-500 text-lg">
+        <div class="mb-2 w-full border-b border-b-primary text-lg">
           {{ t('create-contacts.import-title') }}
         </div>
         <div>
@@ -33,14 +26,14 @@
           class="flex w-max flex-row gap-2 rounded-lg border-2 p-2"
           :class="
             (files?.length ?? 0) >= 1
-              ? 'border-sky-500'
+              ? 'border-primary'
               : !errored
-                ? 'border-amber-500'
-                : 'border-red-500'
+                ? 'border-warning'
+                : 'border-error'
           "
         >
           <button
-            class="text-gray-300-contrast rounded-lg bg-gray-300 p-2"
+            class="text-gray-300-contrast rounded-lg bg-elevated p-2"
             type="button"
             @click="open()"
           >
@@ -55,7 +48,7 @@
           </span>
         </div>
         <!-- MARK: select field -->
-        <div class="my-2 w-full border-b border-b-sky-500 text-lg">
+        <div class="my-2 w-full border-b border-b-primary text-lg">
           {{ t('create-contacts.select-field-title') }}
         </div>
         <div>
@@ -73,14 +66,14 @@
             <th>{{ t('column-number-error') }}</th>
             <th class="flex items-center justify-center">
               {{ t('field') }}
-              <Button
-                severity="secondary"
-                text
+              <UButton
+                variant="ghost"
+                color="neutral"
                 @click="toggleModalCreateField"
                 v-if="createFieldPerm"
               >
                 <CirclePlus />
-              </Button>
+              </UButton>
             </th>
             <th>{{ t('field-number-data') }}</th>
             <th>{{ t('action') }}</th>
@@ -90,12 +83,12 @@
             <th class="pb-1">{{ countValidValue(slot) }}</th>
             <th class="pb-1">{{ getNbError(slot.name).value }}</th>
             <th class="pb-1">
-              <Select
+              <USelect
                 v-model="slot.newName"
-                :options="area.fields.map((f) => f.name)"
+                :items="area.fields.map((f) => f.name)"
                 @update:modelValue="applySelectedField($event, slot.name)"
                 placeholder="Select"
-                fluid
+                class="w-full"
               />
             </th>
             <th>
@@ -104,7 +97,7 @@
                   <DatabaseCheck />
                   {{ getNumberValueInField(csvFields, slot.newName ?? slot.name) }}
                 </span>
-                <Divider layout="vertical" />
+                <USeparator orientation="vertical" />
                 <span>
                   <DatabaseArrowUp />
                   {{ countValidValue(slot) }}
@@ -112,18 +105,17 @@
               </div>
             </th>
             <th class="flex justify-center gap-1">
-              <Button
-                variant="outlined"
-                rounded
-                severity="secondary"
+              <UButton
+                variant="outline"
+                color="neutral"
                 :disabled="!clearableField(slot)"
                 @click="clearField(slot)"
               >
                 <Zap />
-              </Button>
-              <Button variant="outlined" rounded severity="secondary" @click="Deletecolumn(slot)">
+              </UButton>
+              <UButton variant="outline" color="neutral" @click="Deletecolumn(slot)">
                 <Trash2 />
-              </Button>
+              </UButton>
             </th>
           </tr>
         </table>
@@ -131,11 +123,11 @@
     </template>
     <!-- MARK: footer -->
     <template #footer>
-      <Button severity="success" @click="goToReview" :disabled="!allTypeCompleted">
+      <UButton color="success" variant="solid" @click="goToReview" :disabled="!allTypeCompleted">
         {{ t('next') }}
-      </Button>
+      </UButton>
     </template>
-  </Card>
+  </UCard>
 </template>
 
 <script setup lang="ts">
@@ -146,8 +138,7 @@ import { getNumberValueInField } from '@/tools/area.utils'
 import { clearPhone } from '@/tools/phone.utils'
 import { useFileDialog } from '@vueuse/core'
 import Papa from 'papaparse'
-import { Button, Card, Divider, Select, Toast } from 'primevue'
-import { useToast } from 'primevue/usetoast'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -340,13 +331,13 @@ const clearField = (field: CsvField) => {
   onTypeChange(field, field.type)
 
   toast.add({
-    severity: 'success',
-    summary: t('column-clean'),
-    detail: t('nb-row-clean', {
+    color: 'success',
+    title: t('column-clean'),
+    description: t('nb-row-clean', {
       nbClean: nbPreviousError - (typeErrors.value[field.name] ?? 0),
       nbError: typeErrors.value[field.name] ?? 0,
     }),
-    life: 3000,
+    duration: 3000,
   })
 }
 
@@ -355,9 +346,9 @@ const clearField = (field: CsvField) => {
 function goToReview() {
   if (!allTypeCompleted.value) {
     toast.add({
-      severity: 'error',
-      summary: t('not-all-fields-define'),
-      life: 3000,
+      color: 'error',
+      title: t('not-all-fields-define'),
+      duration: 3000,
     })
     return
   }
