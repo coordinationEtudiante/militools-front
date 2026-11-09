@@ -1,44 +1,37 @@
 <template>
-  <Toast />
   <div v-if="errored" class="flex h-full w-full items-center justify-center">
-    <Message severity="error" variant="simple">{{ t('error') }}</Message>
+    <UAlert color="error" variant="soft">{{ t('error') }}</UAlert>
   </div>
   <div v-else class="flex h-full w-full flex-col gap-2">
-    <Card class="w-full shrink-0">
-      <template #title>{{ t('merge') }}</template>
-      <template #content>
-        <!-- progress bar -->
+    <UCard class="w-full shrink-0">
+      <template #header>
+        <span class="font-semibold">{{ t('merge') }}</span>
+      </template>
+      <template #default>
         <div class="flex h-2 w-full gap-4">
-          <div class="h-2 w-full rounded-full bg-sky-500"></div>
-          <div class="h-2 w-full rounded-full bg-sky-500"></div>
-          <div class="h-2 w-full rounded-full bg-sky-500"></div>
+          <div class="h-2 w-full rounded-full bg-primary"></div>
+          <div class="h-2 w-full rounded-full bg-primary"></div>
+          <div class="h-2 w-full rounded-full bg-primary"></div>
         </div>
       </template>
-    </Card>
+    </UCard>
 
     <div class="flex min-h-0 flex-1 flex-col gap-2 xl:flex-row">
-      <!-- duplicates list -->
-      <Card
-        class="flex max-h-72 min-h-0 w-full shrink-0 flex-col xl:max-h-none xl:w-2/5"
-        :pt="{
-          body: { class: 'flex min-h-0 flex-1 flex-col' },
-          content: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
-        }"
-      >
+      <UCard class="flex max-h-72 min-h-0 w-full shrink-0 flex-col xl:max-h-none xl:w-2/5">
         <template #header>
-          <h1 class="text-xl text-gray-950">
+          <h1 class="text-xl text-highlighted">
             {{ t('duplications-detected', { nbDuplicate: nbDuplicate ?? '...' }) }}
           </h1>
         </template>
-        <template #content>
-          <div v-if="loading" class="flex items-center justify-center p-8 text-gray-400">
+        <template #default>
+          <div v-if="loading" class="flex items-center justify-center p-8 text-muted">
             {{ t('merge.loading') }}
           </div>
           <div
             v-else-if="duplicates.length === 0"
-            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-default p-8 text-muted"
           >
-            <CircleCheck class="h-5 w-5 text-emerald-500" />
+            <CircleCheck class="h-5 w-5 text-success" />
             {{ t('no-duplicate') }}
           </div>
           <div v-else class="flex flex-1 flex-col gap-2 overflow-auto">
@@ -46,11 +39,11 @@
               v-for="(dup, i) in duplicates"
               :key="dup.index"
               type="button"
-              class="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-blue-300"
+              class="flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-primary"
               :class="
                 selectedIdx === i
-                  ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-300'
-                  : 'border-transparent bg-gray-100 hover:bg-gray-200'
+                  ? 'border-primary bg-primary/10 ring-2 ring-primary'
+                  : 'border-transparent bg-elevated hover:bg-elevated/80'
               "
               @click="selectDuplicate(i)"
             >
@@ -58,49 +51,46 @@
                 <span class="truncate text-sm font-semibold">
                   {{ dup.summary || `#${dup.index}` }}
                 </span>
-                <span class="text-xs text-gray-500">
+                <span class="text-xs text-muted">
                   {{ t('duplication-index', { index: dup.index + 1 }) }}
                 </span>
               </span>
-              <Tag :severity="statusSeverity(dup.status)" :value="t(`duplication.${dup.status}`)" />
+              <UBadge :color="statusColor(dup.status)" variant="soft" size="xs">
+                {{ t(`duplication.${dup.status}`) }}
+              </UBadge>
             </button>
           </div>
         </template>
-      </Card>
+      </UCard>
 
-      <!-- merge editor -->
-      <Card
-        class="flex min-h-0 w-full flex-1 flex-col"
-        :pt="{
-          body: { class: 'flex min-h-0 flex-1 flex-col' },
-          content: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
-        }"
-      >
+      <UCard class="flex min-h-0 w-full flex-1 flex-col">
         <template #header>
-          <h1 class="flex min-w-0 items-center gap-2 text-xl text-gray-950">
+          <h1 class="flex min-w-0 items-center gap-2 text-xl text-highlighted">
             <span class="truncate">{{ selectedTitle || t('merge') }}</span>
-            <Tag
+            <UBadge
               v-if="selectedDuplicate"
-              :severity="statusSeverity(selectedDuplicate.status)"
-              :value="t(`duplication.${selectedDuplicate.status}`)"
-            />
+              :color="statusColor(selectedDuplicate.status)"
+              variant="soft"
+              size="xs"
+            >
+              {{ t(`duplication.${selectedDuplicate.status}`) }}
+            </UBadge>
           </h1>
         </template>
-        <template #content>
-          <div v-if="loading" class="flex items-center justify-center p-8 text-gray-400">
+        <template #default>
+          <div v-if="loading" class="flex items-center justify-center p-8 text-muted">
             {{ t('merge.loading') }}
           </div>
           <div
             v-else-if="mergeFields.length === 0"
-            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 p-8 text-gray-500"
+            class="flex items-center justify-center gap-2 rounded-xl border border-dashed border-default p-8 text-muted"
           >
             <Users class="h-5 w-5" />
             {{ t('no-duplicate') }}
           </div>
           <div v-else class="flex flex-1 flex-col gap-2 overflow-auto md:gap-0">
-            <!-- desktop header -->
             <div
-              class="bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
+              class="bg-elevated px-3 py-2 text-xs font-semibold tracking-wide text-muted uppercase md:grid md:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_2.5rem_minmax(0,1fr)_2.5rem_minmax(0,1fr)] md:rounded-t-lg"
             >
               <div>{{ t('field') }}</div>
               <div>{{ t('local-version') }}</div>
@@ -121,37 +111,34 @@
         </template>
         <template #footer>
           <div class="flex w-full flex-wrap items-center justify-center gap-2">
-            <Button :label="t('aplicate-local')" severity="secondary" @click="applyAllLocal" />
-            <Button :label="t('aplicate-server')" severity="secondary" @click="applyAllServer" />
-            <Button
-              :label="t('abort')"
-              variant="outlined"
-              severity="contrast"
-              @click="abortMerge"
-            />
-            <Button :label="t('save-and-next')" @click="saveAndNext" />
+            <UButton color="neutral" variant="soft" @click="applyAllLocal">
+              {{ t('aplicate-local') }}
+            </UButton>
+            <UButton color="neutral" variant="soft" @click="applyAllServer">
+              {{ t('aplicate-server') }}
+            </UButton>
+            <UButton color="neutral" variant="outline" @click="abortMerge">
+              {{ t('abort') }}
+            </UButton>
+            <UButton color="primary" variant="solid" @click="saveAndNext">
+              {{ t('save-and-next') }}
+            </UButton>
           </div>
         </template>
-      </Card>
+      </UCard>
     </div>
 
-    <Card class="w-full shrink-0">
-      <template #content>
+    <UCard class="w-full shrink-0">
+      <template #default>
         <div class="flex w-full items-center justify-between gap-2">
-          <Message
-            v-if="unresolvedCount > 0"
-            severity="warn"
-            variant="simple"
-            size="small"
-            class="min-w-0"
-          >
+          <UAlert v-if="unresolvedCount > 0" color="warning" size="sm" class="min-w-0">
             {{ t('merge-unresolved', { nb: unresolvedCount }) }}
-          </Message>
+          </UAlert>
           <span v-else />
-          <Button severity="success" @click="goToRecap">{{ t('next') }}</Button>
+          <UButton color="success" variant="solid" @click="goToRecap">{{ t('next') }}</UButton>
         </div>
       </template>
-    </Card>
+    </UCard>
   </div>
 </template>
 
@@ -165,7 +152,7 @@ import { fetchResource } from '@/tools/fetch.utils'
 import { extremTrim, mostProbableValue } from '@/tools/string.utils'
 import type { MergeDuplicate, MergeField } from '@/types/merge.type'
 import { CircleCheck, Users } from '@lucide/vue'
-import { Button, Card, Message, Tag, Toast, useToast } from 'primevue'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -195,29 +182,25 @@ const nbDuplicate = ref<number>()
 const errored = ref(false)
 const loading = ref(true)
 
-const progressToast = ref<
-  | { severity: string; summary: string; detail: string; sticky: boolean; closable: boolean }
-  | undefined
->()
+const progressToast = ref<{ id: string | number } | undefined>()
 
 function showProgress(detail: string) {
   if (!progressToast.value) {
-    progressToast.value = {
-      severity: 'info',
-      summary: t('merge.checking'),
-      detail,
-      sticky: true,
-      closable: false,
-    }
-    toast.add(progressToast.value)
+    const added = toast.add({
+      color: 'info',
+      title: t('merge.checking'),
+      description: detail,
+      duration: 0,
+    })
+    progressToast.value = { id: added.id }
   } else {
-    progressToast.value.detail = detail
+    toast.update(progressToast.value.id, { description: detail })
   }
 }
 
 function finishProgress() {
   if (!progressToast.value) return
-  toast.remove(progressToast.value)
+  toast.remove(progressToast.value.id)
   progressToast.value = undefined
 }
 
@@ -274,8 +257,8 @@ function selectDuplicate(i: number) {
   mergeFields.value = buildMergeFields(selectedDuplicate.value, selectedLocal.value)
 }
 
-function statusSeverity(status: MergeDuplicate['status']) {
-  if (status === 'to-resolved') return 'warn'
+function statusColor(status: MergeDuplicate['status']) {
+  if (status === 'to-resolved') return 'warning'
   if (status === 'resolved') return 'success'
   return 'info'
 }
@@ -317,9 +300,9 @@ function saveAndNext() {
     selectDuplicate(next)
   } else {
     toast.add({
-      severity: 'success',
-      summary: t('merge-all-resolved'),
-      life: 3000,
+      color: 'success',
+      title: t('merge-all-resolved'),
+      duration: 3000,
     })
   }
 }
