@@ -6,11 +6,11 @@ import ServerSelection from '@/components/form/ServerSelection.vue'
 import { router } from '@/router'
 import { clearPhone } from '@/tools/phone.utils'
 import { CircleUserRound, AtSign } from '@lucide/vue'
-import { Button, FloatLabel, IconField, InputIcon, InputText, Message } from 'primevue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
+/* ---------- constants ---------- */
 const { t } = useI18n()
 
 const firstName = ref('')
@@ -32,7 +32,7 @@ const phoneError = computed(() => {
 
 const emailError = computed(() => {
   const emailPattern =
-    /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+    /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\\x21-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
   if (submitted.value && email.value.trim() === '') {
     return true
   }
@@ -84,41 +84,58 @@ async function createAccount() {
 
 <template>
   <div
-    class="relative m-auto flex max-h-fit max-w-fit flex-col gap-2 overflow-scroll rounded-3xl border border-gray-300 bg-white p-6 sm:p-10"
+    class="relative m-auto flex max-h-fit max-w-fit flex-col gap-2 overflow-scroll rounded-3xl border border-default bg-default p-6 sm:p-10"
   >
+    <!-- title -->
     <h1
-      class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance"
+      class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-highlighted sm:text-5xl lg:text-balance"
     >
       {{ t('login.create-account.title') }}
     </h1>
-    <p class="mt-6 text-lg/8 text-gray-700">{{ t('login.create-account.subtitle') }}</p>
+    <p class="mt-6 text-lg/8 text-default">{{ t('login.create-account.subtitle') }}</p>
+    <!-- form -->
+    <form @submit.prevent="createAccount" autocomplete="on" class="flex flex-col gap-2">
+      <!-- first name -->
+    <UFormField 
+      label="Prénom" 
+      :error="submitted && firstName.trim() === '' ? 'Requis' : undefined"
+    >
+      <UInput 
+        type="text" 
+        id="firstName"
+        name="firstName"
+        autocomplete="given-name" 
+        v-model="firstName" 
+        :disabled="creating" 
+        :invalid="submitted && firstName.trim() === ''" 
+        fluid
+      >
+        <template #leading>
+          <CircleUserRound :size="16" />
+        </template>
+      </UInput>
+    </UFormField>
 
-    <FloatLabel variant="on">
-      <IconField>
-        <InputIcon>
-          <CircleUserRound :size="15" />
-        </InputIcon>
-        <InputText
-          id="firstName"
-          v-model="firstName"
-          :invalid="submitted && firstName.trim() === ''"
-          :disabled="creating"
-          fluid
-        />
-      </IconField>
-      <label for="firstName">{{ t('input.firstName') }}</label>
-    </FloatLabel>
-
-    <FloatLabel variant="on">
-      <IconField>
-        <InputIcon>
-          <AtSign :size="15" />
-        </InputIcon>
-        <InputText id="email" v-model="email" :invalid="emailError" :disabled="creating" fluid />
-      </IconField>
-      <label for="email">{{ t('input.email') }}</label>
-    </FloatLabel>
-
+    <!-- email -->
+    <UFormField 
+      label="Email" 
+      :error="emailError ? t('error.invalid-email') : undefined"
+    >
+      <UInput 
+        type="email" 
+        id="register-email"
+        name="register-email"
+        autocomplete="email" 
+        v-model="email" 
+        :disabled="creating" 
+        :invalid="emailError" 
+        fluid
+      >
+        <template #leading>
+          <AtSign :size="16" />
+        </template>
+      </UInput>
+    </UFormField>
     <InputPhone
       v-model:phone="phone"
       :disabled="creating"
@@ -135,22 +152,22 @@ async function createAccount() {
     <div class="gap-spacer" />
     <div class="gap-spacer" />
 
-    <Message v-if="errored !== false && errored == 409" severity="error">
+    <UAlert v-if="errored !== false && errored == 409" color="error">
       {{ t('error.duplicate-user') }}
-    </Message>
-    <Message v-else-if="errored !== false" severity="error">
+    </UAlert>
+    <UAlert v-else-if="errored !== false" color="error">
       {{ t('error.server-error', { code: errored }) }}
-    </Message>
-    <Button
-      type="button"
+    </UAlert>
+    <UButton
+      type="submit"
       :label="t('button.create-account')"
       :loading="creating"
-      @click="createAccount"
     />
-    <Button variant="outlined" :link="false" :disabled="creating">
+    </form>
+    <UButton variant="outlined" :link="false" :disabled="creating">
       <RouterLink to="/auth/login" class="w-full">
         {{ t('button.allready-an-account') }}
       </RouterLink>
-    </Button>
+    </UButton>
   </div>
 </template>
