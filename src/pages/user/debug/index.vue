@@ -25,20 +25,13 @@ import {
   AccordionContent,
   AccordionHeader,
   AccordionPanel,
-  Button,
-  Chip,
   Column,
   DataTable,
-  Message,
-  Panel,
-  ProgressBar,
   Tab,
   TabList,
   TabPanel,
   TabPanels,
   Tabs,
-  Tag,
-  Toolbar,
 } from 'primevue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -183,17 +176,17 @@ function clearResults() {
   results.value = []
 }
 
-// PrimeVue Tag severity based on the status
-function statusSeverity(status: DebugResultRow['status']) {
+// UBadge color based on the status
+function statusColor(status: DebugResultRow['status']) {
   switch (status) {
     case 'success':
       return 'success'
     case 'error':
-      return 'danger'
+      return 'error'
     case 'running':
-      return 'warn'
+      return 'warning'
     default:
-      return 'secondary'
+      return 'neutral'
   }
 }
 
@@ -276,43 +269,44 @@ async function runAction(store: DebugStore, actionKey: string) {
     </header>
 
     <!-- Panel 1: quick reloads + results history -->
-    <Panel :header="t('debug.quick-reload')">
+    <UCard>
+      <template #header>{{ t('debug.quick-reload') }}</template>
       <div class="flex flex-col gap-3">
         <!-- Button bar: reload all + one button per catalog unit -->
         <div class="flex flex-wrap items-center gap-2">
-          <Button severity="contrast" :loading="reloadingAll" @click="runAll">
+          <UButton color="neutral" variant="solid" :loading="reloadingAll" @click="runAll">
             <RotateCw :size="16" class="mr-2" />
             {{ t('debug.reload-all') }}
-          </Button>
+          </UButton>
 
           <template v-for="item in quickReloads" :key="item.entry.storeId + '::' + item.unit.label">
-            <Button
-              severity="secondary"
-              size="small"
-              outlined
+            <UButton
+              color="neutral"
+              variant="outline"
+              size="xs"
               :disabled="reloadingAll"
               @click="runUnit(item.entry, item.unit)"
             >
               <RefreshCw :size="14" class="mr-1" />
               {{ t(item.unit.label) }}
-            </Button>
+            </UButton>
           </template>
 
-          <Button
+          <UButton
             v-if="results.length"
-            severity="danger"
-            size="small"
-            text
+            color="error"
+            variant="ghost"
+            size="xs"
             :disabled="reloadingAll"
             @click="clearResults"
           >
             {{ t('debug.clear-results') }}
-          </Button>
+          </UButton>
         </div>
 
         <!-- "Reload all" progress bar -->
         <div v-if="quickReloads.length" class="flex flex-col gap-1">
-          <ProgressBar :value="progress" />
+          <UProgress :value="progress" />
           <div class="flex items-center justify-between text-xs text-muted">
             <span>{{ doneCount }} / {{ quickReloads.length }}</span>
             <span>{{ progress }}%</span>
@@ -340,9 +334,9 @@ async function runAction(store: DebugStore, actionKey: string) {
           </Column>
           <Column field="status" :header="t('debug.column.status')" class="w-32">
             <template #body="{ data }">
-              <Tag :severity="statusSeverity(data.status)" rounded>
+              <UBadge :color="statusColor(data.status)" variant="soft" size="xs" rounded>
                 {{ statusLabel(data.status) }}
-              </Tag>
+              </UBadge>
             </template>
           </Column>
           <Column :header="'Message'">
@@ -354,10 +348,10 @@ async function runAction(store: DebugStore, actionKey: string) {
           </Column>
         </DataTable>
       </div>
-    </Panel>
+    </UCard>
 
     <!-- Panel 2: route permissions + forced reload of the perm store -->
-    <Panel>
+    <UCard>
       <template #header>
         <div class="flex items-center gap-2">
           <ShieldCheck :size="20" />
@@ -369,35 +363,32 @@ async function runAction(store: DebugStore, actionKey: string) {
         <p class="text-xs text-muted">{{ t('debug.permissions.subtitle') }}</p>
 
         <!-- Summary (session, route count) + forced re-fetch button -->
-        <Toolbar>
-          <template #start>
-            <div class="flex flex-wrap items-center gap-2">
-              <Tag :severity="permStore.hasSession ? 'success' : 'danger'" rounded>
-                {{ permStore.hasSession ? 'Session OK' : 'No session' }}
-              </Tag>
-              <Tag severity="contrast" rounded>{{ permStore.routes.length }} routes</Tag>
-            </div>
-          </template>
-          <template #end>
-            <Button
-              severity="contrast"
-              size="small"
-              :loading="permStore.loading || reloadingAll"
-              @click="permStore.hydrate(true)"
-            >
-              <RotateCw :size="14" class="mr-1" />
-              {{ t('debug.permissions.reload') }}
-            </Button>
-          </template>
-        </Toolbar>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <UBadge :color="permStore.hasSession ? 'success' : 'error'" variant="soft" size="xs" rounded>
+              {{ permStore.hasSession ? 'Session OK' : 'No session' }}
+            </UBadge>
+            <UBadge color="neutral" variant="soft" size="xs" rounded>{{ permStore.routes.length }} routes</UBadge>
+          </div>
+          <UButton
+            color="neutral"
+            variant="solid"
+            size="xs"
+            :loading="permStore.loading || reloadingAll"
+            @click="permStore.hydrate(true)"
+          >
+            <RotateCw :size="14" class="mr-1" />
+            {{ t('debug.permissions.reload') }}
+          </UButton>
+        </div>
 
         <!-- Error / no session => message; otherwise the routes table -->
-        <Message v-if="permStore.errored" severity="error" :sticky="true">
+        <UAlert v-if="permStore.errored" color="error">
           {{ t('debug.status.error') }}
-        </Message>
-        <Message v-else-if="!permStore.hasSession" severity="info" :sticky="true">
+        </UAlert>
+        <UAlert v-else-if="!permStore.hasSession" color="info">
           {{ t('debug.routes.empty') }}
-        </Message>
+        </UAlert>
         <DataTable
           v-else
           :value="permStore.routes"
@@ -428,31 +419,33 @@ async function runAction(store: DebugStore, actionKey: string) {
           </Column>
           <Column field="level" :header="t('debug.permissions.level')" class="w-32">
             <template #body="{ data }">
-              <Tag v-if="data.level" severity="warn" rounded>{{ data.level }}</Tag>
+              <UBadge v-if="data.level" color="warning" variant="soft" size="xs" rounded>{{ data.level }}</UBadge>
               <span v-else class="text-xs text-muted">—</span>
             </template>
           </Column>
           <!-- "Authorized" column: cross-checked with the store authorizedRoutes -->
           <Column :header="t('debug.permissions.authorized')" class="w-40">
             <template #body="{ data }">
-              <Tag
+              <UBadge
                 v-if="permStore.authorizedRoutes.some((a) => a.id === data.id)"
-                severity="success"
+                color="success"
+                variant="soft"
+                size="xs"
                 rounded
               >
                 {{
                   permStore.authorizedRoutes.find((a) => a.id === data.id)?.routePermLevels ?? '✓'
                 }}
-              </Tag>
-              <Tag v-else severity="secondary" rounded> ✗ </Tag>
+              </UBadge>
+              <UBadge v-else color="neutral" variant="soft" size="xs" rounded> ✗ </UBadge>
             </template>
           </Column>
         </DataTable>
       </div>
-    </Panel>
+    </UCard>
 
     <!-- Panel 3: full inspection of every store -->
-    <Panel>
+    <UCard>
       <template #header>
         <div class="flex items-center gap-2">
           <Database :size="20" />
@@ -472,22 +465,22 @@ async function runAction(store: DebugStore, actionKey: string) {
                 <span class="font-medium">{{
                   card.entry ? t(card.entry.label) : card.store.$id
                 }}</span>
-                <Chip :label="card.store.$id" size="small" class="px-2" />
-                <Tag v-if="!card.fromCatalog" severity="warn" rounded>
+                <UBadge color="neutral" variant="soft" size="xs" class="px-2">{{ card.store.$id }}</UBadge>
+                <UBadge v-if="!card.fromCatalog" color="warning" variant="soft" size="xs" rounded>
                   {{ t('debug.extra-stores') }}
-                </Tag>
+                </UBadge>
               </div>
-              <Button
+              <UButton
                 v-if="card.entry?.reloads.length"
-                severity="secondary"
-                size="small"
-                outlined
+                color="neutral"
+                variant="outline"
+                size="xs"
                 :disabled="reloadingAll"
                 @click.stop="runStore(card.entry!)"
               >
                 <RefreshCw :size="14" class="mr-1" />
                 {{ t('debug.action.reload') }}
-              </Button>
+              </UButton>
             </div>
           </AccordionHeader>
 
@@ -529,15 +522,15 @@ async function runAction(store: DebugStore, actionKey: string) {
                       </Column>
                       <Column :header="t('debug.action.run')" class="w-32">
                         <template #body="{ data }">
-                          <Button
-                            size="small"
+                          <UButton
+                            size="xs"
                             :disabled="!isRunnable(card.store, data.key)"
                             :loading="runningActionKey === card.store.$id + '::' + data.key"
                             @click="runAction(card.store, data.key)"
                           >
                             <Play :size="14" class="mr-1" />
                             {{ t('debug.action.run') }}
-                          </Button>
+                          </UButton>
                         </template>
                       </Column>
                     </DataTable>
@@ -551,6 +544,6 @@ async function runAction(store: DebugStore, actionKey: string) {
           </AccordionContent>
         </AccordionPanel>
       </Accordion>
-    </Panel>
+    </UCard>
   </div>
 </template>
