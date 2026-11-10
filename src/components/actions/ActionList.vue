@@ -3,7 +3,7 @@
     <SkeletonActionCard v-if="skeleton" type="default" />
     <template v-else>
       <ActionCard v-for="action in actions" :key="action.id" :action />
-      <Message v-if="noAction">{{ t('is-empty') }}</Message>
+      <UAlert v-if="noAction" color="info">{{ t('is-empty') }}</UAlert>
     </template>
   </div>
 
@@ -49,7 +49,7 @@ import { useI18n } from 'vue-i18n'
 import ActionCard from '@/components/actions/ActionCard.vue'
 import SkeletonActionCard from '@/components/actions/SkeletonActionCard.vue'
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
-import { Message } from 'primevue'
+
 
 const { t } = useI18n()
 
