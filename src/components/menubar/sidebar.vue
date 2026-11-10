@@ -54,17 +54,23 @@ const goToSetting = () => {
     </div>
     <!-- action buttons -->
     <div class="mx-auto flex gap-4 md:flex-col">
-      <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user')" v-if="actionPerm" >
-        <Clapperboard :size="24" />
-      </UButton>
-      <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user/contact')" v-if="contactPerm">
-        <span class="inline-block hover:scale-110 focus-visible:scale-110">
-          <BookUser :size="24" />
-        </span>
-      </UButton>
-      <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user/contact/search')" v-if="searchPerm">
-        <UserSearch :size="24" />
-      </UButton> 
+      <UTooltip :text="t('nav.dashboard')">
+        <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user')" v-if="actionPerm">
+          <Clapperboard :size="24" />
+        </UButton>
+      </UTooltip>
+      <UTooltip :text="t('nav.contacts')">
+        <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user/contact')" v-if="contactPerm">
+          <span class="inline-block hover:scale-110 focus-visible:scale-110">
+            <BookUser :size="24" />
+          </span>
+        </UButton>
+      </UTooltip>
+      <UTooltip :text="t('nav.search')">
+        <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110" @click="router.push('/user/contact/search')" v-if="searchPerm">
+          <UserSearch :size="24" />
+        </UButton>
+      </UTooltip> 
       <UButton variant="ghost" color="neutral" class="p-1 cursor-pointer hover:scale-110 focus:outline-none focus-visible:scale-110">
         <Gavel :size="24" />
       </UButton> 
