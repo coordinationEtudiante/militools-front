@@ -10,7 +10,7 @@ import frMessages from '../locales/fr.json'
 import App from './App.vue'
 import './index.css'
 import { router } from './router'
-import { buildPreset, storedPalette } from './theme/palettes'
+import { buildPreset, storedPalette, initPalette } from './theme/palettes'
 import './theme/useTheme'
 import ui from '@nuxt/ui/vue-plugin'
 
@@ -42,6 +42,8 @@ app.use(PrimeVue, {
   },
   license: import.meta.env.VITE_PRIMEUI_LICENSE_KEY,
 })
+
+initPalette()
 
 app.directive('mask', Mask)
 app.directive('tooltip', Tooltip)

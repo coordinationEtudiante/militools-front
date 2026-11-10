@@ -226,6 +226,26 @@ export function buildPreset(key: PaletteKey) {
   })
 }
 
+export function applyUiColors(key: PaletteKey) {
+  const palette = palettes[key]
+  if (!palette) return
+
+  const style = document.documentElement.style
+  for (const [shade, hex] of Object.entries(palette.primary)) {
+    style.setProperty(`--ui-color-primary-${shade}`, hex)
+  }
+  for (const [shade, hex] of Object.entries(palette.light)) {
+    style.setProperty(`--ui-color-neutral-light-${shade}`, hex)
+  }
+  for (const [shade, hex] of Object.entries(palette.dark)) {
+    style.setProperty(`--ui-color-neutral-dark-${shade}`, hex)
+  }
+}
+
+export function initPalette() {
+  applyUiColors(storedPalette())
+}
+
 export function applyPalette(key: PaletteKey) {
   if (!palettes[key]) return
 
@@ -234,6 +254,8 @@ export function applyPalette(key: PaletteKey) {
   current.value = key
   document.documentElement.dataset.palette = key
   localStorage.setItem('mt-palette', key)
+
+  applyUiColors(key)
 }
 
 export function storedPalette(): PaletteKey {

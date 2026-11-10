@@ -13,6 +13,34 @@
 }
 
 :root {
+  --ui-color-neutral-50: var(--ui-color-neutral-light-50);
+  --ui-color-neutral-100: var(--ui-color-neutral-light-100);
+  --ui-color-neutral-200: var(--ui-color-neutral-light-200);
+  --ui-color-neutral-300: var(--ui-color-neutral-light-300);
+  --ui-color-neutral-400: var(--ui-color-neutral-light-400);
+  --ui-color-neutral-500: var(--ui-color-neutral-light-500);
+  --ui-color-neutral-600: var(--ui-color-neutral-light-600);
+  --ui-color-neutral-700: var(--ui-color-neutral-light-700);
+  --ui-color-neutral-800: var(--ui-color-neutral-light-800);
+  --ui-color-neutral-900: var(--ui-color-neutral-light-900);
+  --ui-color-neutral-950: var(--ui-color-neutral-light-950);
+}
+
+.dark {
+  --ui-color-neutral-50: var(--ui-color-neutral-dark-50);
+  --ui-color-neutral-100: var(--ui-color-neutral-dark-100);
+  --ui-color-neutral-200: var(--ui-color-neutral-dark-200);
+  --ui-color-neutral-300: var(--ui-color-neutral-dark-300);
+  --ui-color-neutral-400: var(--ui-color-neutral-dark-400);
+  --ui-color-neutral-500: var(--ui-color-neutral-dark-500);
+  --ui-color-neutral-600: var(--ui-color-neutral-dark-600);
+  --ui-color-neutral-700: var(--ui-color-neutral-dark-700);
+  --ui-color-neutral-800: var(--ui-color-neutral-dark-800);
+  --ui-color-neutral-900: var(--ui-color-neutral-dark-900);
+  --ui-color-neutral-950: var(--ui-color-neutral-dark-950);
+}
+
+:root {
   --mt-bg: var(--p-surface-0);
   --mt-bg-alt: var(--p-surface-50);
   --mt-bg-hover: var(--p-surface-100);
