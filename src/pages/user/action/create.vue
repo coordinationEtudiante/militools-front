@@ -1,139 +1,3 @@
-<template>
-  <div class="flex w-full flex-col gap-2 overflow-y-auto lg:flex-row lg:overflow-hidden">
-    <MCard class="w-full" :title="t('action.creation')">
-      <Form class="flex w-full flex-col gap-4">
-        <span class="flex flex-col gap-1">
-          <label for="action.title">{{ t('input.title') }}</label>
-          <UInput id="action.title" v-model="title" />
-        </span>
-        <Fieldset :legend="t('input.date-set')">
-          <span class="flex flex-col gap-4">
-            <span class="flex flex-col gap-1">
-              <label for="action.dateStart">{{ t('input.date-start') }}</label>
-              <DatePicker
-                id="action.dateStart"
-                :minDate="new Date()"
-                v-model="dateStart"
-                showTime
-                hourFormat="24"
-                showIcon
-                fluid
-              />
-            </span>
-            <span class="flex flex-col gap-1">
-              <label for="action.dateEnd">{{ t('input.date-end') }}</label>
-              <DatePicker
-                id="action.dateEnd"
-                :minDate="new Date()"
-                v-model="dateEnd"
-                showTime
-                hourFormat="24"
-                showIcon
-                fluid
-              />
-            </span>
-          </span>
-        </Fieldset>
-        <span class="flex flex-col gap-1">
-          <label for="action.description">{{ t('input.description') }}</label>
-          <UInput id="action.description" v-model="description" />
-        </span>
-        <span class="flex flex-col gap-1">
-          <label for="action.descriptionEvent">{{ t('input.descriptionEvent') }}</label>
-          <Editor id="action.descriptionEvent" v-model="descriptionEvent" />
-        </span>
-        <span class="flex flex-col gap-1">
-          <label for="action.locationName">{{ t('input.location-name') }}</label>
-          <UInput id="action.locationName" v-model="locationName" />
-        </span>
-        <span class="flex flex-col gap-1">
-          <label for="action.adress">{{ t('input.location-adress') }}</label>
-          <LocationPicker @change="(value) => (locationPicked = value)" />
-        </span>
-        <span class="flex flex-col gap-1" v-if="imagePerm">
-          <UAlert color="warning">{{ t('input.image.warn') }}</UAlert>
-          <span class="flex items-center gap-2">
-            <label for="action.image">{{ t('input.image') }}</label>
-            <FileUpload
-              id="action.image"
-              mode="basic"
-              @select="onFileSelect"
-              customUpload
-              accept="image/png, image/jpeg, image/gif, image/jpg"
-              severity="secondary"
-              class="p-button-outlined"
-            />
-            <span v-if="imageName != ''">
-              {{ imageName }}
-            </span>
-            <UButton v-if="imageName != ''" variant="outline" color="neutral"><X :size="18" /></UButton>
-          </span>
-        </span>
-        <span v-else>
-          <UAlert color="neutral">{{ t('input.image.no-perm') }}</UAlert>
-        </span>
-      </Form>
-      <template #footer>
-        <UButton :loading="isLoading" @click="handleCreateAction" class="w-full">{{
-          t('create-action')
-        }}</UButton>
-      </template>
-    </MCard>
-    <MCard class="w-full" :title="t('action.render')">
-      <div class="flex flex-col gap-6">
-        <!-- Image -->
-        <div
-          v-if="image"
-          class="h-64 w-full rounded-lg bg-cover bg-center"
-          :style="{ 'background-image': `url(${image})` }"
-        />
-
-        <!-- Title -->
-        <div v-if="title" class="flex flex-col gap-2">
-          <h2 class="text-3xl font-bold">{{ title }}</h2>
-          <p v-if="description" class="text-muted">{{ description }}</p>
-        </div>
-
-        <!-- Dates -->
-        <div v-if="dateStart || dateEnd" class="flex flex-col gap-3 rounded-lg bg-elevated p-4">
-          <h3 class="text-lg font-semibold">{{ t('input.date-set') }}</h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div v-if="dateStart">
-              <p class="text-sm text-muted">{{ t('input.date-start') }}</p>
-              <p class="font-medium">{{ dateStart.toLocaleString() }}</p>
-            </div>
-            <div v-if="dateEnd">
-              <p class="text-sm text-muted">{{ t('input.date-end') }}</p>
-              <p class="font-medium">{{ dateEnd.toLocaleString() }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Location -->
-        <div v-if="locationName || location" class="flex flex-col gap-3">
-          <h3 class="text-lg font-semibold">{{ t('input.location-name') }}</h3>
-          <p v-if="locationName" class="text-gray-700">{{ locationName }}</p>
-          <Map v-if="location" :label="locationName" :geo="location" />
-        </div>
-
-        <!-- Event Description -->
-        <div v-if="descriptionEvent" class="flex flex-col gap-3">
-          <h3 class="text-lg font-semibold">{{ t('input.descriptionEvent') }}</h3>
-          <Editor
-            v-model="descriptionEvent"
-            readonly
-            :pt="{
-              toolbar: { style: { display: 'none' } },
-              editorElement: { style: { padding: '1rem', backgroundColor: 'var(--ui-bg-muted)' } },
-            }"
-            class="editor"
-          />
-        </div>
-      </div>
-    </MCard>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { createAction } from '@/cloud-functions/actions/create'
 import { createImage } from '@/cloud-functions/image/create'
@@ -144,8 +8,7 @@ import { useActionStore } from '@/stores/action.store'
 import { usePermStore } from '@/stores/perm.store'
 import { X } from '@lucide/vue'
 import { Form } from '@primevue/forms'
-import { DatePicker, Fieldset, FileUpload } from 'primevue'
-import Editor from 'primevue/editor'
+import { DatePicker } from 'primevue'
 import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -313,6 +176,126 @@ async function handleCreateAction() {
   }
 }
 </script>
+
+<template>
+  <div class="flex w-full flex-col gap-2 overflow-y-auto lg:flex-row lg:overflow-hidden">
+    <MCard class="w-full" :title="t('action.creation')">
+      <Form class="flex w-full flex-col gap-4">
+        <span class="flex flex-col gap-1">
+          <label for="action.title">{{ t('input.title') }}</label>
+          <UInput id="action.title" v-model="title" />
+        </span>
+        <fieldset class="flex flex-col gap-4 rounded-lg border border-default p-4">
+          <legend class="px-2 text-sm font-medium text-default">{{ t('input.date-set') }}</legend>
+          <span class="flex flex-col gap-4">
+            <span class="flex flex-col gap-1">
+              <label for="action.dateStart">{{ t('input.date-start') }}</label>
+              <DatePicker
+                id="action.dateStart"
+                :minDate="new Date()"
+                v-model="dateStart"
+                showTime
+                hourFormat="24"
+                showIcon
+                fluid
+              />
+            </span>
+            <span class="flex flex-col gap-1">
+              <label for="action.dateEnd">{{ t('input.date-end') }}</label>
+              <DatePicker
+                id="action.dateEnd"
+                :minDate="new Date()"
+                v-model="dateEnd"
+                showTime
+                hourFormat="24"
+                showIcon
+                fluid
+              />
+            </span>
+          </span>
+        </fieldset>
+        <span class="flex flex-col gap-1">
+          <label for="action.description">{{ t('input.description') }}</label>
+          <UInput id="action.description" v-model="description" />
+        </span>
+        <UFormField :label="t('input.descriptionEvent')">
+          <UTextarea
+            id="action.descriptionEvent"
+            v-model="descriptionEvent"
+            :rows="6"
+            autoresize
+          />
+        </UFormField>
+        <span class="flex flex-col gap-1">
+          <label for="action.locationName">{{ t('input.location-name') }}</label>
+          <UInput id="action.locationName" v-model="locationName" />
+        </span>
+        <span class="flex flex-col gap-1">
+          <label for="action.adress">{{ t('input.location-adress') }}</label>
+          <LocationPicker @change="(value) => (locationPicked = value)" />
+        </span>
+        <span class="flex flex-col gap-1" v-if="imagePerm">
+          <UAlert color="warning">{{ t('input.image.warn') }}</UAlert>
+          <span class="flex items-center gap-2">
+            <label for="action.image">{{ t('input.image') }}</label>
+            <UFileUpload
+              accept="image/png, image/jpeg, image/gif, image/jpg"
+              :disabled="isLoading"
+              @change="onFileSelect"
+            />
+            <span v-if="imageName != ''">
+              {{ imageName }}
+            </span>
+            <UButton v-if="imageName != ''" variant="outline" color="neutral"><X :size="18" /></UButton>
+          </span>
+        </span>
+        <span v-else>
+          <UAlert color="neutral">{{ t('input.image.no-perm') }}</UAlert>
+        </span>
+      </Form>
+      <template #footer>
+        <UButton :loading="isLoading" @click="handleCreateAction" class="w-full">{{
+          t('create-action')
+        }}</UButton>
+      </template>
+    </MCard>
+    <MCard class="w-full" :title="t('action.render')">
+      <div class="flex flex-col gap-6">
+        <div
+          v-if="image"
+          class="h-64 w-full rounded-lg bg-cover bg-center"
+          :style="{ 'background-image': `url(${image})` }"
+        />
+        <div v-if="title" class="flex flex-col gap-2">
+          <h2 class="text-3xl font-bold">{{ title }}</h2>
+          <p v-if="description" class="text-muted">{{ description }}</p>
+        </div>
+        <div v-if="dateStart || dateEnd" class="flex flex-col gap-3 rounded-lg bg-elevated p-4">
+          <h3 class="text-lg font-semibold">{{ t('input.date-set') }}</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div v-if="dateStart">
+              <p class="text-sm text-muted">{{ t('input.date-start') }}</p>
+              <p class="font-medium">{{ dateStart.toLocaleString() }}</p>
+            </div>
+            <div v-if="dateEnd">
+              <p class="text-sm text-muted">{{ t('input.date-end') }}</p>
+              <p class="font-medium">{{ dateEnd.toLocaleString() }}</p>
+            </div>
+          </div>
+        </div>
+        <div v-if="locationName || location" class="flex flex-col gap-3">
+          <h3 class="text-lg font-semibold">{{ t('input.location-name') }}</h3>
+          <p v-if="locationName" class="text-default">{{ locationName }}</p>
+          <Map v-if="location" :label="locationName" :geo="location" />
+        </div>
+        <div v-if="descriptionEvent" class="flex flex-col gap-3">
+          <h3 class="text-lg font-semibold">{{ t('input.descriptionEvent') }}</h3>
+          <p class="whitespace-pre-wrap text-default">{{ descriptionEvent }}</p>
+        </div>
+      </div>
+    </MCard>
+  </div>
+</template>
 
 <style scoped>
 @media (max-width: 1023px) {
