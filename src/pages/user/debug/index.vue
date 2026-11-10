@@ -268,11 +268,11 @@ async function runAction(store: DebugStore, actionKey: string) {
   <div class="flex w-full min-w-0 flex-col gap-4 overflow-x-hidden p-2">
     <!-- Page title -->
     <header class="flex flex-col gap-1">
-      <h1 class="flex items-center gap-2 text-4xl font-semibold tracking-tighter text-gray-950">
+      <h1 class="flex items-center gap-2 text-4xl font-semibold tracking-tighter text-highlighted">
         <Bug :size="28" />
         {{ t('debug.title') }}
       </h1>
-      <p class="text-sm text-gray-600">{{ t('debug.subtitle') }}</p>
+      <p class="text-sm text-muted">{{ t('debug.subtitle') }}</p>
     </header>
 
     <!-- Panel 1: quick reloads + results history -->
@@ -313,7 +313,7 @@ async function runAction(store: DebugStore, actionKey: string) {
         <!-- "Reload all" progress bar -->
         <div v-if="quickReloads.length" class="flex flex-col gap-1">
           <ProgressBar :value="progress" />
-          <div class="flex items-center justify-between text-xs text-gray-500">
+          <div class="flex items-center justify-between text-xs text-muted">
             <span>{{ doneCount }} / {{ quickReloads.length }}</span>
             <span>{{ progress }}%</span>
           </div>
@@ -347,7 +347,7 @@ async function runAction(store: DebugStore, actionKey: string) {
           </Column>
           <Column :header="'Message'">
             <template #body="{ data }">
-              <span v-if="data.message" class="text-xs break-all text-red-600">{{
+              <span v-if="data.message" class="text-xs break-all text-error">{{
                 data.message
               }}</span>
             </template>
@@ -366,7 +366,7 @@ async function runAction(store: DebugStore, actionKey: string) {
       </template>
 
       <div class="flex flex-col gap-3">
-        <p class="text-xs text-gray-500">{{ t('debug.permissions.subtitle') }}</p>
+        <p class="text-xs text-muted">{{ t('debug.permissions.subtitle') }}</p>
 
         <!-- Summary (session, route count) + forced re-fetch button -->
         <Toolbar>
@@ -413,7 +413,7 @@ async function runAction(store: DebugStore, actionKey: string) {
           </Column>
           <Column field="path" :header="'Path'" class="w-56">
             <template #body="{ data }">
-              <code class="text-xs text-gray-600">{{ data.path }}</code>
+              <code class="text-xs text-muted">{{ data.path }}</code>
             </template>
           </Column>
           <Column field="name" :header="'Name'" class="w-56">
@@ -429,7 +429,7 @@ async function runAction(store: DebugStore, actionKey: string) {
           <Column field="level" :header="t('debug.permissions.level')" class="w-32">
             <template #body="{ data }">
               <Tag v-if="data.level" severity="warn" rounded>{{ data.level }}</Tag>
-              <span v-else class="text-xs text-gray-400">—</span>
+              <span v-else class="text-xs text-muted">—</span>
             </template>
           </Column>
           <!-- "Authorized" column: cross-checked with the store authorizedRoutes -->
@@ -460,7 +460,7 @@ async function runAction(store: DebugStore, actionKey: string) {
         </div>
       </template>
 
-      <p class="mb-3 text-xs text-gray-500">{{ t('debug.stores.subtitle') }}</p>
+      <p class="mb-3 text-xs text-muted">{{ t('debug.stores.subtitle') }}</p>
 
       <!-- One accordion per store: state, getters and actions in tabs -->
       <Accordion multiple :value="openPanels">
@@ -524,7 +524,7 @@ async function runAction(store: DebugStore, actionKey: string) {
                       </Column>
                       <Column :header="t('debug.column.signature')">
                         <template #body="{ data }">
-                          <code class="text-xs text-gray-600">{{ data.signature }}</code>
+                          <code class="text-xs text-muted">{{ data.signature }}</code>
                         </template>
                       </Column>
                       <Column :header="t('debug.action.run')" class="w-32">
@@ -541,7 +541,7 @@ async function runAction(store: DebugStore, actionKey: string) {
                         </template>
                       </Column>
                     </DataTable>
-                    <p v-if="!card.inspection.actions.length" class="text-xs text-gray-400">
+                    <p v-if="!card.inspection.actions.length" class="text-xs text-muted">
                       {{ t('debug.empty') }}
                     </p>
                   </TabPanel>

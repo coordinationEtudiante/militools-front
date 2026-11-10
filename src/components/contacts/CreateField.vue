@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { createContactFields } from '@/cloud-functions/contacts/createContactFields'
 import { useAreaStore } from '@/stores/area.store'
-import { AutoComplete, Button, Dialog, InputText, Message, RadioButton } from 'primevue'
+import { AutoComplete, Dialog } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -107,27 +107,25 @@ async function handleSubmit() {
 
       <div class="flex flex-col gap-1">
         <label for="fieldName">{{ t('modal.creat-field.new-field-name') }}</label>
-        <InputText
+        <UInput
           id="fieldName"
           v-model="fieldName"
           required
-          fluid
           :invalid="!nameValid && fieldName.length > 0"
         />
       </div>
 
-      <Message
+      <UAlert
         v-if="!nameValid && fieldName.length > 0"
-        severity="error"
-        size="small"
-        variant="simple"
+        color="error"
+        size="xs"
       >
         {{ t('modal.creat-field.duplicate-name') }}
-      </Message>
+      </UAlert>
 
       <div class="flex flex-col gap-1">
         <label for="fieldDescription">{{ t('modal.creat-field.new-field-description') }}</label>
-        <InputText id="fieldDescription" v-model="fieldDescription" required fluid />
+        <UInput id="fieldDescription" v-model="fieldDescription" required />
       </div>
 
       <div class="flex flex-col gap-1">
@@ -142,72 +140,54 @@ async function handleSubmit() {
         />
       </div>
 
-      <Message
+      <UAlert
         v-if="!typeValid && typeValue.length > 0"
-        severity="error"
-        size="small"
-        variant="simple"
+        color="error"
+        size="xs"
       >
         {{ t('modal.creat-field.invalid-type') }}
-      </Message>
+      </UAlert>
 
       <div class="flex flex-col gap-1">
         <label for="fieldDefaultValue">{{ t('modal.creat-field.new-field-default-value') }}</label>
-        <InputText
+        <UInput
           id="fieldDefaultValue"
           v-model="fieldDefaultValue"
           :invalid="!defaultValid && fieldDefaultValue.length > 0"
-          fluid
         />
       </div>
 
-      <Message
+      <UAlert
         v-if="!defaultValid && fieldDefaultValue.length > 0"
-        severity="error"
-        size="small"
-        variant="simple"
+        color="error"
+        size="xs"
       >
         {{ t('modal.creat-field.default-type-error') }}
-      </Message>
+      </UAlert>
 
-      <div class="flex items-center gap-2">
-        <RadioButton
-          v-model="significance"
-          inputId="fieldPrimary"
-          name="significance"
-          value="primary"
-        />
-        <label for="fieldPrimary">{{ t('primary.description') }}</label>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <RadioButton
-          v-model="significance"
-          inputId="fieldIndexed"
-          name="significance"
-          value="indexed"
-        />
-        <label for="fieldIndexed">{{ t('recomended.description') }}</label>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <RadioButton
-          v-model="significance"
-          inputId="fieldOther"
-          name="significance"
-          value="other"
-        />
-        <label for="fieldOther">{{ t('other.description') }}</label>
-      </div>
+      <URadioGroup v-model="significance" class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <URadio value="primary" id="fieldPrimary" />
+          <label for="fieldPrimary">{{ t('primary.description') }}</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <URadio value="indexed" id="fieldIndexed" />
+          <label for="fieldIndexed">{{ t('recomended.description') }}</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <URadio value="other" id="fieldOther" />
+          <label for="fieldOther">{{ t('other.description') }}</label>
+        </div>
+      </URadioGroup>
 
       <div class="flex gap-2">
-        <Button type="submit" :label="t('create-field')" />
-        <Button :label="t('button.give-up')" severity="contrast" @click="localVisible = false" />
+        <UButton type="submit" :label="t('create-field')" />
+        <UButton :label="t('button.give-up')" color="neutral" variant="solid" @click="localVisible = false" />
       </div>
 
-      <Message v-if="errorMessage" severity="error" size="small">
+      <UAlert v-if="errorMessage" color="error" size="xs">
         {{ errorMessage }}
-      </Message>
+      </UAlert>
     </form>
   </Dialog>
 </template>
