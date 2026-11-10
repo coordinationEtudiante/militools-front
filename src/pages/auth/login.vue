@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button, Message } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ServerSelection from '@/components/form/ServerSelection.vue'
@@ -10,6 +9,7 @@ import InputPassword from '@/components/form/InputPassword.vue'
 import { login } from '@/cloud-functions/auth/login'
 import { clearPhone } from '@/tools/phone.utils'
 
+/* ---------- constants ---------- */
 const { t } = useI18n()
 const userStore = useUserStore()
 
@@ -72,6 +72,7 @@ async function loginUser() {
   <div
     class="relative m-auto flex max-h-fit max-w-fit flex-col gap-2 overflow-scroll rounded-3xl border border-gray-300 bg-white p-6 sm:p-10"
   >
+    <!-- title -->
     <h1
       class="mt-2 text-4xl font-semibold tracking-tight text-pretty text-gray-900 sm:text-5xl lg:text-balance"
     >
@@ -79,6 +80,7 @@ async function loginUser() {
     </h1>
     <p class="mt-6 text-lg/8 text-gray-700">{{ t('login.subtitle') }}</p>
 
+    <!-- form -->
     <InputPhone v-model:phone="phone" :disabled="connecting" :invalid="phoneError" />
     <InputPassword
       v-model:password="password"
@@ -91,16 +93,17 @@ async function loginUser() {
     <div class="gap-spacer" />
     <div class="gap-spacer" />
 
-    <Message v-if="errored !== 200" severity="error">
+    <UAlert v-if="errored !== 200" severity="error">
       {{ errored === 401 ? t('error.login.incorrect') : t('error.login.error', { code: errored }) }}
-    </Message>
-    <Button type="submit" @click="loginUser" :disabled="userStore.loading">{{
+    </UAlert>
+    <!-- buttons -->
+    <UButton type="submit" :loading="connecting" @click="loginUser" :disabled="userStore.loading">{{
       t('button.connect')
-    }}</Button>
-    <Button variant="outlined" :link="false" :disabled="userStore.loading">
+    }}</UButton>
+    <UButton variant="outlined" :link="false" :disabled="userStore.loading">
       <RouterLink to="/auth/register" class="w-full">
         {{ t('button.create-accont') }}
       </RouterLink>
-    </Button>
+    </UButton>
   </div>
 </template>
