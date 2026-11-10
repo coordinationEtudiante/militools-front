@@ -10,15 +10,16 @@
           loading="lazy"
         />
         <div v-else class="flex h-48 w-full items-center justify-center rounded-t-xl bg-gray-100">
-          <ImageOff class="h-12 w-12 text-gray-400" />
+          <ImageOff class="h-12 w-12 text-muted" />
         </div>
-        <Tag
+        <UBadge
           v-if="action.awnser !== null"
-          :severity="action.awnser ? 'success' : 'warn'"
+          :color="action.awnser ? 'success' : 'warning'"
+          variant="soft"
           class="absolute top-2 right-2"
         >
           {{ action.awnser ? t('action.participating') : t('action.not-participating') }}
-        </Tag>
+        </UBadge>
       </div>
     </template>
 
@@ -26,21 +27,21 @@
       <div class="flex flex-col gap-2">
         <RouterLink
           :to="{ name: '/user/action/[id]', params: { id: action.id } }"
-          class="text-xl font-bold tracking-tight text-gray-950 hover:underline"
+          class="text-xl font-bold tracking-tight text-highlighted hover:underline"
         >
           {{ action.title }}
         </RouterLink>
 
         <div class="flex flex-wrap gap-2">
-          <Tag v-if="action.locationName" severity="secondary">
+          <UBadge v-if="action.locationName" color="neutral" variant="soft">
             <MapAppLink :geo="action.location" :label="action.locationName" />
-          </Tag>
-          <Tag severity="secondary">
-            <template #icon>
+          </UBadge>
+          <UBadge color="neutral" variant="soft">
+            <template #leading>
               <Megaphone class="h-4 w-4" />
             </template>
             {{ area?.name ?? action.area }}
-          </Tag>
+          </UBadge>
         </div>
 
         <p v-if="action.description" class="line-clamp-3 text-sm text-gray-600">
@@ -71,7 +72,7 @@ import type { Action } from '@/stores/action.store'
 import { useAreaStore } from '@/stores/area.store'
 import { computed } from 'vue'
 import { usePermStore } from '@/stores/perm.store'
-import { Tag } from 'primevue'
+
 import { Megaphone, Calendar, Clock, ImageOff } from '@lucide/vue'
 import { getBaseUrl } from '@/tools/fetch.utils'
 import { useI18n } from 'vue-i18n'
