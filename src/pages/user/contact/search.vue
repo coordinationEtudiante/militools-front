@@ -1,68 +1,66 @@
 <template>
   <div class="h-full w-full">
-    <Message v-if="isAdmin" severity="success" class="m-2">{{ t('serach-admin') }}</Message>
+    <UAlert v-if="isAdmin" color="success" class="m-2">{{ t('serach-admin') }}</UAlert>
     <CreditStakedBar v-else />
-    <Message severity="warn" class="m-2">
+    <UAlert color="warning" class="m-2">
       {{ t('search-log-warn', { credit: areaStore.getArea().searchCredit }) }}
-    </Message>
+    </UAlert>
     <MCard
       v-if="contacts === undefined"
       :title="t('seach-in-nb-field', { nb: statsStore.isReady ? '...' : statsStore.getnbValue })"
       class="m-2 flex flex-col justify-center gap-2"
     >
       <form class="flex flex-col justify-center gap-2">
-        <Accordion value="primary-field">
-          <AccordionPanel value="primary-field" :disabled="areaStore.primaryFields.length == 0">
-            <AccordionHeader>{{ t('primary-field') }}</AccordionHeader>
-            <AccordionContent>
-              <div class="flex flex-wrap gap-1">
-                <FieldInput
-                  v-for="field in areaStore.primaryFields"
-                  :field="field"
-                  :key="field.id"
-                  :validation="false"
-                  @update:model-value="(value) => fieldValue.set(field.name, value)"
-                />
-              </div>
-            </AccordionContent>
-          </AccordionPanel>
-          <AccordionPanel value="indexed-field" :disabled="areaStore.indexedFields.length == 0">
-            <AccordionHeader>{{ t('indexed-field') }}</AccordionHeader>
-            <AccordionContent>
-              <div class="flex flex-wrap gap-1">
-                <FieldInput
-                  v-for="field in areaStore.indexedFields"
-                  :field="field"
-                  :key="field.id"
-                  :validation="false"
-                  @update:model-value="(value) => fieldValue.set(field.name, value)"
-                />
-              </div>
-            </AccordionContent>
-          </AccordionPanel>
-          <AccordionPanel value="other-field" :disabled="areaStore.otherFields.length == 0">
-            <AccordionHeader>{{ t('other-field') }}</AccordionHeader>
-            <AccordionContent>
-              <div class="flex flex-wrap gap-1">
-                <FieldInput
-                  v-for="field in areaStore.otherFields"
-                  :field="field"
-                  :key="field.id"
-                  :validation="false"
-                  @update:model-value="(value) => fieldValue.set(field.name, value)"
-                />
-              </div>
-            </AccordionContent>
-          </AccordionPanel>
-        </Accordion>
-        <Message v-if="tooSmallValue" severity="info">{{ t('search-min-3-lenght') }}</Message>
-        <Message v-if="errorCode == 404" severity="error">{{ t('search-error-404') }}</Message>
-        <Message v-else-if="errorCode != 200" severity="error">
+        <UAccordion
+          :items="[
+            { value: 'primary-field', label: t('primary-field'), disabled: areaStore.primaryFields.length === 0, slot: 'primary' },
+            { value: 'indexed-field', label: t('indexed-field'), disabled: areaStore.indexedFields.length === 0, slot: 'indexed' },
+            { value: 'other-field', label: t('other-field'), disabled: areaStore.otherFields.length === 0, slot: 'other' },
+          ]"
+          multiple
+        >
+          <template #primary>
+            <div class="flex flex-wrap gap-1">
+              <FieldInput
+                v-for="field in areaStore.primaryFields"
+                :field="field"
+                :key="field.id"
+                :validation="false"
+                @update:model-value="(value) => fieldValue.set(field.name, value)"
+              />
+            </div>
+          </template>
+          <template #indexed>
+            <div class="flex flex-wrap gap-1">
+              <FieldInput
+                v-for="field in areaStore.indexedFields"
+                :field="field"
+                :key="field.id"
+                :validation="false"
+                @update:model-value="(value) => fieldValue.set(field.name, value)"
+              />
+            </div>
+          </template>
+          <template #other>
+            <div class="flex flex-wrap gap-1">
+              <FieldInput
+                v-for="field in areaStore.otherFields"
+                :field="field"
+                :key="field.id"
+                :validation="false"
+                @update:model-value="(value) => fieldValue.set(field.name, value)"
+              />
+            </div>
+          </template>
+        </UAccordion>
+        <UAlert v-if="tooSmallValue" color="info">{{ t('search-min-3-lenght') }}</UAlert>
+        <UAlert v-if="errorCode == 404" color="error">{{ t('search-error-404') }}</UAlert>
+        <UAlert v-else-if="errorCode != 200" color="error">
           {{ t('search-error', { code: errorCode }) }}
-        </Message>
-        <Button :disabled="nbField == 0" @click="search">{{
+        </UAlert>
+        <UButton :disabled="nbField == 0" @click="search">{{
           t('search-on-nb-fields', { nb: nbField })
-        }}</Button>
+        }}</UButton>
       </form>
     </MCard>
     <MCard
@@ -70,29 +68,32 @@
       :title="t('search-result', { nb: contacts.length })"
       class="m-2 flex flex-col justify-center gap-2"
     >
-      <Accordion class="Accordion">
-        <AccordionPanel v-for="contact in contacts" :value="contact.id" :key="contact.id">
-          <AccordionHeader>
-            <Dicebear :size="32" :seed="String(contact.id)" />
-            {{ getPresentationField(contact) }}</AccordionHeader
+      <UAccordion
+        :items="(contacts ?? []).map((c) => ({ value: String(c.id), label: getPresentationField(c), slot: 'contact' }))"
+        multiple
+      >
+        <template #default="{ item }">
+          <span class="flex items-center gap-2">
+            <Dicebear :size="32" :seed="String(item.value)" />
+            {{ item.label }}
+          </span>
+        </template>
+        <template #contact="{ item }">
+          <div
+            class="flex justify-between gap-1"
+            v-for="field in (contacts.find((c) => String(c.id) === item.value)?.fields ?? [])"
+            :key="field.name"
           >
-          <AccordionContent>
-            <div
-              class="flex justify-between gap-1"
-              v-for="field in contact.fields"
-              :key="field.name"
-            >
-              <span class="text-gray-950">
-                {{ field.name }}
-              </span>
-              <span>
-                {{ field.value }}
-              </span>
-            </div>
-          </AccordionContent>
-        </AccordionPanel>
-      </Accordion>
-      <Button @click="newSearch">{{ t('new-search') }}</Button>
+            <span class="text-highlighted">
+              {{ field.name }}
+            </span>
+            <span>
+              {{ field.value }}
+            </span>
+          </div>
+        </template>
+      </UAccordion>
+      <UButton @click="newSearch">{{ t('new-search') }}</UButton>
     </MCard>
   </div>
 </template>
@@ -109,16 +110,8 @@ import { useSearchCreditStore } from '@/stores/searchCredit.store'
 import { useStatsStore } from '@/stores/stats.store'
 import { fetchResource } from '@/tools/fetch.utils'
 import type { GetContactsResponse } from '@/types/cloud-functions/contacts/getContacts'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionHeader,
-  AccordionPanel,
-  Button,
-  Message,
-} from 'primevue'
-import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { computed, reactive, ref } from 'vue'
 
 const { t } = useI18n()
 const areaStore = useAreaStore()
