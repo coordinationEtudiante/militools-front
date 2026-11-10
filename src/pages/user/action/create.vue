@@ -1,11 +1,10 @@
 <template>
   <div class="flex w-full flex-col gap-2 overflow-y-auto lg:flex-row lg:overflow-hidden">
-    <Toast />
     <MCard class="w-full" :title="t('action.creation')">
       <Form class="flex w-full flex-col gap-4">
         <span class="flex flex-col gap-1">
           <label for="action.title">{{ t('input.title') }}</label>
-          <InputText id="action.title" v-model="title" />
+          <UInput id="action.title" v-model="title" />
         </span>
         <Fieldset :legend="t('input.date-set')">
           <span class="flex flex-col gap-4">
@@ -37,7 +36,7 @@
         </Fieldset>
         <span class="flex flex-col gap-1">
           <label for="action.description">{{ t('input.description') }}</label>
-          <InputText id="action.description" v-model="description" />
+          <UInput id="action.description" v-model="description" />
         </span>
         <span class="flex flex-col gap-1">
           <label for="action.descriptionEvent">{{ t('input.descriptionEvent') }}</label>
@@ -45,14 +44,14 @@
         </span>
         <span class="flex flex-col gap-1">
           <label for="action.locationName">{{ t('input.location-name') }}</label>
-          <InputText id="action.locationName" v-model="locationName" />
+          <UInput id="action.locationName" v-model="locationName" />
         </span>
         <span class="flex flex-col gap-1">
           <label for="action.adress">{{ t('input.location-adress') }}</label>
           <LocationPicker @change="(value) => (locationPicked = value)" />
         </span>
         <span class="flex flex-col gap-1" v-if="imagePerm">
-          <Message severity="warn">{{ t('input.image.warn') }}</Message>
+          <UAlert color="warning">{{ t('input.image.warn') }}</UAlert>
           <span class="flex items-center gap-2">
             <label for="action.image">{{ t('input.image') }}</label>
             <FileUpload
@@ -67,17 +66,17 @@
             <span v-if="imageName != ''">
               {{ imageName }}
             </span>
-            <Button v-if="imageName != ''" variant="outlined"><X :size="18" /></Button>
+            <UButton v-if="imageName != ''" variant="outline" color="neutral"><X :size="18" /></UButton>
           </span>
         </span>
         <span v-else>
-          <Message severity="contrast">{{ t('input.image.no-perm') }}</Message>
+          <UAlert color="neutral">{{ t('input.image.no-perm') }}</UAlert>
         </span>
       </Form>
       <template #footer>
-        <Button fluid :loading="isLoading" @click="handleCreateAction">{{
+        <UButton :loading="isLoading" @click="handleCreateAction" class="w-full">{{
           t('create-action')
-        }}</Button>
+        }}</UButton>
       </template>
     </MCard>
     <MCard class="w-full" :title="t('action.render')">
@@ -92,19 +91,19 @@
         <!-- Title -->
         <div v-if="title" class="flex flex-col gap-2">
           <h2 class="text-3xl font-bold">{{ title }}</h2>
-          <p v-if="description" class="text-gray-600">{{ description }}</p>
+          <p v-if="description" class="text-muted">{{ description }}</p>
         </div>
 
         <!-- Dates -->
-        <div v-if="dateStart || dateEnd" class="flex flex-col gap-3 rounded-lg bg-gray-50 p-4">
+        <div v-if="dateStart || dateEnd" class="flex flex-col gap-3 rounded-lg bg-elevated p-4">
           <h3 class="text-lg font-semibold">{{ t('input.date-set') }}</h3>
           <div class="grid grid-cols-2 gap-4">
             <div v-if="dateStart">
-              <p class="text-sm text-gray-600">{{ t('input.date-start') }}</p>
+              <p class="text-sm text-muted">{{ t('input.date-start') }}</p>
               <p class="font-medium">{{ dateStart.toLocaleString() }}</p>
             </div>
             <div v-if="dateEnd">
-              <p class="text-sm text-gray-600">{{ t('input.date-end') }}</p>
+              <p class="text-sm text-muted">{{ t('input.date-end') }}</p>
               <p class="font-medium">{{ dateEnd.toLocaleString() }}</p>
             </div>
           </div>
@@ -125,7 +124,7 @@
             readonly
             :pt="{
               toolbar: { style: { display: 'none' } },
-              editorElement: { style: { padding: '1rem', backgroundColor: '#f9fafb' } },
+              editorElement: { style: { padding: '1rem', backgroundColor: 'var(--ui-bg-muted)' } },
             }"
             class="editor"
           />
@@ -145,9 +144,9 @@ import { useActionStore } from '@/stores/action.store'
 import { usePermStore } from '@/stores/perm.store'
 import { X } from '@lucide/vue'
 import { Form } from '@primevue/forms'
-import { Button, DatePicker, Fieldset, FileUpload, InputText, Message, Toast } from 'primevue'
+import { DatePicker, Fieldset, FileUpload } from 'primevue'
 import Editor from 'primevue/editor'
-import { useToast } from 'primevue/usetoast'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -199,20 +198,20 @@ function onFileSelect(event) {
 async function handleCreateAction() {
   if (!title.value.trim()) {
     toast.add({
-      severity: 'error',
-      summary: t('action.error'),
-      detail: `${t('input.title')} ${t('is-empty')}`,
-      life: 3000,
+      color: 'error',
+      title: t('action.error'),
+      description: `${t('input.title')} ${t('is-empty')}`,
+      duration: 3000,
     })
     return
   }
 
   if (dateStart.value >= dateEnd.value) {
     toast.add({
-      severity: 'error',
-      summary: t('action.error'),
-      detail: t('action.error.date-start-greater-date-end'),
-      life: 3000,
+      color: 'error',
+      title: t('action.error'),
+      description: t('action.error.date-start-greater-date-end'),
+      duration: 3000,
     })
     return
   }
@@ -230,10 +229,10 @@ async function handleCreateAction() {
 
       if (uploadError === 413) {
         toast.add({
-          severity: 'error',
-          summary: t('image-too-big'),
-          detail: t('image-too-big.max-10mo'),
-          life: 3000,
+          color: 'error',
+          title: t('image-too-big'),
+          description: t('image-too-big.max-10mo'),
+          duration: 3000,
         })
         isLoading.value = false
         return
@@ -241,10 +240,10 @@ async function handleCreateAction() {
 
       if (uploadError !== 200 || !upload.data.value?.id) {
         toast.add({
-          severity: 'error',
-          summary: t('action.error'),
-          detail: t('action.error.upload'),
-          life: 3000,
+          color: 'error',
+          title: t('action.error'),
+          description: t('action.error.upload'),
+          duration: 3000,
         })
         isLoading.value = false
         return
@@ -273,20 +272,20 @@ async function handleCreateAction() {
 
     if (actionError !== 200) {
       toast.add({
-        severity: 'error',
-        summary: t('action.error'),
-        detail: t('action.error.creation'),
-        life: 3000,
+        color: 'error',
+        title: t('action.error'),
+        description: t('action.error.creation'),
+        duration: 3000,
       })
       isLoading.value = false
       return
     }
 
     toast.add({
-      severity: 'success',
-      summary: t('action.created'),
-      detail: `"${title.value}" ${t('action.created')}`,
-      life: 3000,
+      color: 'success',
+      title: t('action.created'),
+      description: `"${title.value}" ${t('action.created')}`,
+      duration: 3000,
     })
 
     title.value = ''
@@ -304,10 +303,10 @@ async function handleCreateAction() {
   } catch (error) {
     console.error('Error creating action:', error)
     toast.add({
-      severity: 'error',
-      summary: t('action.error'),
-      detail: t('action.error.creation'),
-      life: 3000,
+      color: 'error',
+      title: t('action.error'),
+      description: t('action.error.creation'),
+      duration: 3000,
     })
   } finally {
     isLoading.value = false

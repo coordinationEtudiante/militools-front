@@ -1,54 +1,52 @@
 <template>
-  <Toast />
-  <Card class="w-full">
-    <template #title>{{ t('create-contacts.recap') }}</template>
+  <UCard class="w-full">
     <template #header>
-      <!-- progress bar -->
-      <div class="row flex h-2 w-full gap-4 p-2">
-        <div class="h-2 w-full rounded-full" :class="error ? 'bg-amber-500' : 'bg-emerald-500'" />
-        <div class="h-2 w-full rounded-full" :class="error ? 'bg-amber-500' : 'bg-emerald-500'" />
-        <div class="h-2 w-full rounded-full" :class="error ? 'bg-amber-500' : 'bg-emerald-500'" />
+      <div class="flex flex-col gap-2">
+        <span class="font-semibold">{{ t('create-contacts.recap') }}</span>
+        <div class="row flex h-2 w-full gap-4 p-2">
+          <div class="h-2 w-full rounded-full" :class="error ? 'bg-warning' : 'bg-success'" />
+          <div class="h-2 w-full rounded-full" :class="error ? 'bg-warning' : 'bg-success'" />
+          <div class="h-2 w-full rounded-full" :class="error ? 'bg-warning' : 'bg-success'" />
+        </div>
       </div>
     </template>
-    <template #content>
-      <Message v-if="error" severity="error" variant="simple" class="mb-3">
-        {{ errorMessage ?? t('error') }}
-      </Message>
-      <div>
-        {{ t('create-recap', { nbCreate: successList.length, nbError }) }}
-      </div>
-      <DataTable
-        v-if="errorValue.length > 0"
-        :value="errorValue"
-        ref="dt"
-        :sortField="'message'"
-        :sortOrder="1"
-        tableStyle="min-width: 50rem"
-      >
-        <template #header>
-          <div class="pb-4 text-end">
-            <Button
-              icon="pi pi-external-link"
-              severity="contrast"
-              label="Export"
-              @click="exportCSV()"
-            />
-          </div>
-        </template>
-        <Column field="message" :header="t('reason')" :exportHeader="t('reason')" sortable />
-        <Column
-          v-for="field in errorColumns"
-          :key="field"
-          :field="field"
-          :header="field"
-          :exportHeader="field"
-        />
-      </DataTable>
-      <div v-else>
-        {{ t('no-error') }}
-      </div>
-    </template>
-  </Card>
+    <UAlert v-if="error" color="error" size="sm" class="mb-3">
+      {{ errorMessage ?? t('error') }}
+    </UAlert>
+    <div>
+      {{ t('create-recap', { nbCreate: successList.length, nbError }) }}
+    </div>
+    <DataTable
+      v-if="errorValue.length > 0"
+      :value="errorValue"
+      ref="dt"
+      :sortField="'message'"
+      :sortOrder="1"
+      tableStyle="min-width: 50rem"
+    >
+      <template #header>
+        <div class="pb-4 text-end">
+          <UButton
+            color="neutral"
+            variant="solid"
+            label="Export"
+            @click="exportCSV()"
+          />
+        </div>
+      </template>
+      <Column field="message" :header="t('reason')" :exportHeader="t('reason')" sortable />
+      <Column
+        v-for="field in errorColumns"
+        :key="field"
+        :field="field"
+        :header="field"
+        :exportHeader="field"
+      />
+    </DataTable>
+    <div v-else>
+      {{ t('no-error') }}
+    </div>
+  </UCard>
 </template>
 
 <script setup lang="ts">
@@ -58,7 +56,8 @@ import { DataStorage } from '@/stores/contact/creates/dataStorage'
 import { usePermStore } from '@/stores/perm.store'
 import { FieldsToIds } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
-import { Button, Card, Column, DataTable, Message, Toast, useToast } from 'primevue'
+import { Column, DataTable } from 'primevue'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -113,29 +112,25 @@ const errorColumns = computed(() => {
 
 const nbError = computed(() => errorList.value.length + editErrorList.value.length)
 
-const progressToast = ref<
-  | { severity: string; summary: string; detail: string; sticky: boolean; closable: boolean }
-  | undefined
->()
+const progressToast = ref<{ id: string | number } | undefined>()
 
 function showProgress(detail: string) {
   if (!progressToast.value) {
-    progressToast.value = {
-      severity: 'info',
-      summary: t('creates.progress'),
-      detail,
-      sticky: true,
-      closable: false,
-    }
-    toast.add(progressToast.value)
+    const added = toast.add({
+      color: 'info',
+      title: t('creates.progress'),
+      description: detail,
+      duration: 0,
+    })
+    progressToast.value = { id: added.id }
   } else {
-    progressToast.value.detail = detail
+    toast.update(progressToast.value.id, { description: detail })
   }
 }
 
 function finishProgress() {
   if (!progressToast.value) return
-  toast.remove(progressToast.value)
+  toast.remove(progressToast.value.id)
   progressToast.value = undefined
 }
 
@@ -195,9 +190,9 @@ onMounted(async () => {
 
     if (nbError.value === 0) {
       toast.add({
-        severity: 'success',
-        summary: t('creates.done'),
-        life: 3000,
+        color: 'success',
+        title: t('creates.done'),
+        duration: 3000,
       })
     }
   } catch (e) {
@@ -205,10 +200,10 @@ onMounted(async () => {
     const message = e instanceof fetchError ? e.message : String(e)
     errorMessage.value = message
     toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: message,
-      life: 5000,
+      color: 'error',
+      title: t('error'),
+      description: message,
+      duration: 5000,
     })
   } finally {
     finishProgress()
