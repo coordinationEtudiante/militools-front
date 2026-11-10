@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, Toast, useToast } from 'primevue'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { RotateCw } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,10 +17,10 @@ async function refreshClick() {
     .catch((err) => {
       const msg = String(err)
       toast.add({
-        severity: 'error',
-        summary: t('refresh.error'),
-        detail: msg,
-        life: 3000,
+        color: 'error',
+        title: t('refresh.error'),
+        description: msg,
+        duration: 3000,
       })
     })
     .finally(() => (isLoading.value = false))
@@ -28,8 +28,7 @@ async function refreshClick() {
 </script>
 
 <template>
-  <Toast />
-  <Button severity="contrast">
+  <UButton variant="ghost" color="neutral" class="p-0">
     <RotateCw :size="24" @click="refreshClick" :class="{ 'animate-spin': isLoading }" />
-  </Button>
+  </UButton>
 </template>
