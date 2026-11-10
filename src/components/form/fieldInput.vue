@@ -1,21 +1,20 @@
 <template>
-  <IftaLabel>
-    <InputText
+  <UFormField :label="field.name">
+    <UInput
       :id="String(field.id)"
       v-model="tryValue"
       :placeholder="field.type"
       :invalid="errored"
     />
-    <label :for="String(field.id)">{{ field.name }}</label>
-    <Message v-if="errored" size="small" severity="error" variant="simple">
+    <UAlert v-if="errored" color="error" size="xs">
       {{ t('type-error', { type: field.type, validator: validatorLabel }) }}
-    </Message>
-  </IftaLabel>
+    </UAlert>
+  </UFormField>
 </template>
 
 <script lang="ts" setup>
 import { useAreaStore, type FieldsType } from '@/stores/area.store'
-import { IftaLabel, InputText, Message } from 'primevue'
+
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
