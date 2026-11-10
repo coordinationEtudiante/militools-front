@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Phone } from '@lucide/vue'
 import { useEventListener } from '@vueuse/core'
-import { FloatLabel, IconField, InputIcon, InputText } from 'primevue'
 import { computed, nextTick, ref, watch, type CSSProperties } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { clearPhone } from '@/tools/phone.utils'
+import { vMaska } from 'maska/vue'
 
 export interface PhoneSuggestion {
   value: string
@@ -30,7 +30,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const mask = { mask: '+99 9 99 99 99 99', slotChar: ' ' }
+const maskPattern = '+## # ## ## ## ##'
 
 const rootEl = ref<HTMLElement | null>(null)
 const panelRef = ref<HTMLElement | null>(null)
@@ -191,34 +191,31 @@ watch(filteredSuggestions, (list) => {
 
 <template>
   <div ref="rootEl" @keydown.capture="onKeydown">
-    <FloatLabel variant="on">
-      <IconField>
-        <InputIcon>
-          <Phone :size="15" />
-        </InputIcon>
-        <InputText
+    <UFormField :label="t('input.phone')">
+      <div class="relative flex items-center">
+        <Phone class="pointer-events-none absolute left-3 h-4 w-4 text-muted" />
+        <UInput
           type="tel"
           v-model="phone"
-          v-mask="mask"
+          v-maska="maskPattern"
           inputmode="numeric"
           :disabled="props.disabled"
           :invalid="props.invalid"
           :tabindex="props.tabindex"
-          fluid
+          class="pl-9"
           @focus="onFocus"
           @input="onInput"
           @blur="onBlur"
         />
-      </IconField>
-      <label for="phone">{{ t('input.phone') }}</label>
-    </FloatLabel>
+      </div>
+    </UFormField>
 
     <Teleport to="body">
       <div
         v-if="open && filteredSuggestions.length > 0"
         ref="panelRef"
         :style="panelStyle"
-        class="z-50 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+        class="z-50 max-h-64 overflow-y-auto rounded-xl border border-default bg-elevated py-1 shadow-lg"
       >
         <button
           v-for="(suggestion, index) in filteredSuggestions"
@@ -226,16 +223,16 @@ watch(filteredSuggestions, (list) => {
           type="button"
           :data-index="index"
           :class="[
-            'flex w-full cursor-pointer flex-col gap-0.5 px-3 py-2 text-left text-sm text-gray-800',
-            'hover:bg-gray-100',
-            activeIndex === index && 'bg-gray-100',
+            'flex w-full cursor-pointer flex-col gap-0.5 px-3 py-2 text-left text-sm text-default',
+            'hover:bg-elevated',
+            activeIndex === index && 'bg-elevated',
           ]"
           @mousedown.prevent
           @click="select(suggestion)"
           @mouseenter="activeIndex = index"
         >
           <span>{{ pretty(suggestion.value) }}</span>
-          <span v-if="suggestion.detail" class="text-xs text-gray-500">
+          <span v-if="suggestion.detail" class="text-xs text-muted">
             {{ suggestion.detail }}
           </span>
         </button>
