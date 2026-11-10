@@ -3,7 +3,7 @@ import MCard from '@/components/MCard.vue'
 import Dicebear from '@/components/Dicebear.vue'
 import { getContacts, type GetContactOptions } from '@/cloud-functions/contacts/getContacts'
 import { exportContactCSV } from '@/cloud-functions/contacts/exportCSV'
-import { Button, Column, DataTable, InputText } from 'primevue'
+import { Column, DataTable } from 'primevue'
 import type { DataTableSortEvent, DataTableSortMeta } from 'primevue/datatable'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -128,7 +128,7 @@ onMounted(() => {
     <template #header>
       <div class="flex items-center justify-between gap-4">
         <div>
-          <div class="text-2xl tracking-tighter text-balance text-gray-950">
+          <div class="text-2xl tracking-tighter text-balance text-highlighted">
             {{ t('contacts') }}
           </div>
           <div v-if="!isLoading" class="text-xl">
@@ -136,23 +136,24 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex gap-2">
-          <Button v-if="isExportPerm" severity="contrast" @click="onExportCSV">
+          <UButton v-if="isExportPerm" color="neutral" variant="solid" @click="onExportCSV">
             {{ t('export-csv') }}
-          </Button>
+          </UButton>
           <RouterLink to="/user/contact/create" v-if="isCreatePerm">
-            <Button severity="contrast">{{ t('create-one') }}</Button>
+            <UButton color="neutral" variant="solid">{{ t('create-one') }}</UButton>
           </RouterLink>
           <RouterLink to="/user/contact/creates/" v-if="isCreatesPerm">
-            <Button severity="contrast">{{ t('import-file') }}</Button>
+            <UButton color="neutral" variant="solid">{{ t('import-file') }}</UButton>
           </RouterLink>
-          <Button
-            severity="contrast"
+          <UButton
+            color="neutral"
+            variant="solid"
             :disabled="!selectedContacts.length"
             v-if="isDeletePerm"
             @click="onDeletedContact"
           >
             {{ t('contact.delete-selected', { nb: selectedContacts.length }) }}
-          </Button>
+          </UButton>
         </div>
       </div>
     </template>
@@ -199,7 +200,7 @@ onMounted(() => {
         style="min-width: 8rem"
       >
         <template #filter="{ filterModel, filterCallback }">
-          <InputText
+          <UInput
             v-model="filterModel.value"
             type="text"
             class="w-full"
@@ -209,7 +210,7 @@ onMounted(() => {
         </template>
       </Column>
       <template #empty>
-        <div class="py-8 text-center text-gray-500">
+        <div class="py-8 text-center text-muted">
           {{ t('is-empty') }}
         </div>
       </template>
