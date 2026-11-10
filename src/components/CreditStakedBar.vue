@@ -1,12 +1,12 @@
 <template>
   <MCard class="flex flex-col gap-1">
     <template #header>
-      <header class="mb-2 tracking-tighter text-balance text-gray-950">
+      <header class="mb-2 tracking-tighter text-balance text-highlighted">
         <div class="flex justify-between text-2xl">
           {{ t('remaning-credit') }}
-          <Button severity="contrast" variant="text">
+          <UButton variant="ghost" color="neutral" class="p-0">
             <RotateCw :class="{ 'animate-spin': searchCreditStore.loading }" :size="12" />
-          </Button>
+          </UButton>
         </div>
         <div class="text-xl">
           {{
@@ -19,30 +19,30 @@
       </header>
     </template>
     <div class="flex h-4 w-full rounded-md">
-      <div class="h-full rounded-l-md bg-red-700" :style="{ width: regularConsumption }" />
+      <div class="h-full rounded-l-md bg-error" :style="{ width: regularConsumption }" />
 
       <div
-        class="h-full bg-yellow-700"
+        class="h-full bg-warning"
         :class="{ 'rounded-l-md': regularConsumption == '0%', 'rounded-r-md': consumed == total }"
         :style="{ width: extraConsumption }"
       />
 
       <div
-        class="h-full flex-1 rounded-r-md bg-green-700"
+        class="h-full flex-1 rounded-r-md bg-success"
         :class="{ 'rounded-md': regularConsumption == '0%' && extraConsumption == '0%' }"
       />
     </div>
-    <Button v-if="consumed >= total" disabled class="w-fit">
-      <Message severity="info">{{ 'not implemented yet' }}</Message>
+    <UButton v-if="consumed >= total" disabled color="neutral" variant="soft" class="w-fit">
+      <UAlert color="info" size="xs">{{ 'not implemented yet' }}</UAlert>
       {{ t('get-more-credit') }}
-    </Button>
+    </UButton>
   </MCard>
 </template>
 
 <script setup lang="ts">
 import MCard from '@/components/MCard.vue'
 import { useSearchCreditStore } from '@/stores/searchCredit.store'
-import { Button } from 'primevue'
+
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RotateCw } from '@lucide/vue'
