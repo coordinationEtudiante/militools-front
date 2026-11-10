@@ -2,7 +2,7 @@
 import ContactListInput from '@/components/contacts/ContactListInput.vue'
 import { isFieldValueValid } from '@/tools/contactValidation.utils'
 import { TriangleAlert, Users } from '@lucide/vue'
-import { Tag } from 'primevue'
+
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -40,27 +40,28 @@ function commitField(fieldName: string) {
 <template>
   <div
     class="flex flex-col gap-3 rounded-xl border-2 p-3 transition-colors"
-    :class="errored ? 'border-red-300 bg-red-50/60' : 'border-gray-200 bg-white'"
+    :class="errored ? 'border-error/30 bg-error/10' : 'border-default bg-elevated'"
   >
     <div class="flex items-center justify-between gap-2">
       <div class="flex min-w-0 items-center gap-2">
-        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100">
-          <Users class="h-4 w-4 text-gray-500" />
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-elevated">
+          <Users class="h-4 w-4 text-muted" />
         </span>
-        <span class="truncate text-sm font-semibold text-gray-700">
+        <span class="truncate text-sm font-semibold text-default">
           {{ t('create-contacts.review-contact', { index }) }}
         </span>
       </div>
-      <Tag
-        :severity="errored ? 'danger' : 'success'"
-        :value="errored ? t('error') : t('create-contacts.valid')"
-        :icon="errored ? 'pi pi-exclamation-triangle' : 'pi pi-check'"
+      <UBadge
+        :color="errored ? 'error' : 'success'"
+        variant="soft"
+        size="xs"
       >
-        <template #icon>
-          <TriangleAlert v-if="errored" />
-          <CircleCheck v-else />
+        <template #leading>
+          <TriangleAlert v-if="errored" class="h-3 w-3" />
+          <CircleCheck v-else class="h-3 w-3" />
         </template>
-      </Tag>
+        {{ errored ? t('error') : t('create-contacts.valid') }}
+      </UBadge>
     </div>
 
     <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
@@ -70,7 +71,7 @@ function commitField(fieldName: string) {
         class="flex flex-col gap-1 rounded-lg p-1.5 transition-colors"
         :class="isFieldError(field) ? 'bg-white/70 ring-1 ring-red-400' : ''"
       >
-        <label class="flex items-center justify-between gap-1 text-xs font-medium text-gray-500">
+        <label class="flex items-center justify-between gap-1 text-xs font-medium text-muted">
           <span class="truncate">{{ field.name }}</span>
           <span
             v-if="isFieldError(field)"
