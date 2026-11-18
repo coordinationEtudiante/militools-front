@@ -7,8 +7,6 @@ import MCard from '@/components/MCard.vue'
 import { useActionStore } from '@/stores/action.store'
 import { usePermStore } from '@/stores/perm.store'
 import { X } from '@lucide/vue'
-import { Form } from '@primevue/forms'
-import { DatePicker } from 'primevue'
 import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,8 +17,8 @@ const permStore = usePermStore()
 const actionStore = useActionStore()
 
 const title = ref<string>('')
-const dateStart = ref<Date>(new Date())
-const dateEnd = ref<Date>(new Date())
+const dateStart = ref<string>(new Date().toISOString().slice(0, 16))
+const dateEnd = ref<string>(new Date().toISOString().slice(0, 16))
 const locationName = ref<string>('')
 const location = ref<{ x: number; y: number } | undefined>(undefined)
 const image = ref<string | null>(null)
@@ -118,8 +116,8 @@ async function handleCreateAction() {
     const action = createAction(
       {
         title: title.value,
-        dateStart: dateStart.value,
-        dateEnd: dateEnd.value,
+        dateStart: new Date(dateStart.value),
+        dateEnd: new Date(dateEnd.value),
         description: description.value,
         descriptionEvent: descriptionEvent.value,
         location: location.value,
@@ -160,8 +158,8 @@ async function handleCreateAction() {
     imageName.value = ''
     selectedFile.value = null
     locationPicked.value = undefined
-    dateStart.value = new Date()
-    dateEnd.value = new Date()
+    dateStart.value = new Date().toISOString().slice(0, 16)
+    dateEnd.value = new Date().toISOString().slice(0, 16)
     actionStore.reloadActions()
   } catch (error) {
     console.error('Error creating action:', error)
@@ -180,7 +178,7 @@ async function handleCreateAction() {
 <template>
   <div class="flex w-full flex-col gap-2 overflow-y-auto lg:flex-row lg:overflow-hidden">
     <MCard class="w-full" :title="t('action.creation')">
-      <Form class="flex w-full flex-col gap-4">
+      <UForm class="flex w-full flex-col gap-4">
         <span class="flex flex-col gap-1">
           <label for="action.title">{{ t('input.title') }}</label>
           <UInput id="action.title" v-model="title" />
@@ -190,26 +188,22 @@ async function handleCreateAction() {
           <span class="flex flex-col gap-4">
             <span class="flex flex-col gap-1">
               <label for="action.dateStart">{{ t('input.date-start') }}</label>
-              <DatePicker
+              <UInput
                 id="action.dateStart"
-                :minDate="new Date()"
+                type="datetime-local"
                 v-model="dateStart"
-                showTime
-                hourFormat="24"
-                showIcon
-                fluid
+                :min="new Date().toISOString().slice(0, 16)"
+                class="w-full"
               />
             </span>
             <span class="flex flex-col gap-1">
               <label for="action.dateEnd">{{ t('input.date-end') }}</label>
-              <DatePicker
+              <UInput
                 id="action.dateEnd"
-                :minDate="new Date()"
+                type="datetime-local"
                 v-model="dateEnd"
-                showTime
-                hourFormat="24"
-                showIcon
-                fluid
+                :min="new Date().toISOString().slice(0, 16)"
+                class="w-full"
               />
             </span>
           </span>
@@ -252,7 +246,7 @@ async function handleCreateAction() {
         <span v-else>
           <UAlert color="neutral">{{ t('input.image.no-perm') }}</UAlert>
         </span>
-      </Form>
+      </UForm>
       <template #footer>
         <UButton :loading="isLoading" @click="handleCreateAction" class="w-full">{{
           t('create-action')
