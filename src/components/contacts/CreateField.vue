@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { createContactFields } from '@/cloud-functions/contacts/createContactFields'
 import { useAreaStore } from '@/stores/area.store'
-import { AutoComplete, Dialog } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -96,13 +95,13 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <Dialog
-    v-model:visible="localVisible"
-    modal
-    :header="t('modal.creat-field.header')"
-    :style="{ width: '25rem' }"
+  <UModal
+    v-model:open="localVisible"
+    :title="t('modal.creat-field.header')"
+    :ui="{ content: 'max-w-[25rem]' }"
   >
-    <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
+    <template #body>
+      <form @submit.prevent="handleSubmit" class="flex flex-col gap-4">
       <span>{{ t('modal.creat-field.title') }}</span>
 
       <div class="flex flex-col gap-1">
@@ -130,13 +129,12 @@ async function handleSubmit() {
 
       <div class="flex flex-col gap-1">
         <label for="fieldType">{{ t('modal.creat-field.new-field-type') }}</label>
-        <AutoComplete
+        <UInputMenu
           v-model="typeValue"
-          :suggestions="suggestions"
-          @complete="search"
-          dropdown
-          fluid
-          :invalid="!typeValid && typeValue.length > 0"
+          :items="suggestions"
+          :color="!typeValid && typeValue.length > 0 ? 'error' : 'primary'"
+          class="w-full"
+          @update:search-term="search({ query: $event })"
         />
       </div>
 
@@ -189,5 +187,6 @@ async function handleSubmit() {
         {{ errorMessage }}
       </UAlert>
     </form>
-  </Dialog>
+    </template>
+  </UModal>
 </template>
