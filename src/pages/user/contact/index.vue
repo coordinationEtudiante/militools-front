@@ -3,9 +3,8 @@ import MCard from '@/components/MCard.vue'
 import Dicebear from '@/components/Dicebear.vue'
 import { getContacts, type GetContactOptions } from '@/cloud-functions/contacts/getContacts'
 import { exportContactCSV } from '@/cloud-functions/contacts/exportCSV'
-import { Column, DataTable } from 'primevue'
-import type { DataTableSortEvent, DataTableSortMeta } from 'primevue/datatable'
 import { computed, onMounted, ref, watch } from 'vue'
+import type { PaginationState, SortingState } from '@tanstack/vue-table'
 import { useI18n } from 'vue-i18n'
 import { usePermStore } from '@/stores/perm.store'
 import { fetchResource } from '@/tools/fetch.utils'
@@ -28,7 +27,9 @@ const selectedContacts = ref<FlatContact[]>([])
 const first = ref(0)
 const rows = ref(20)
 const filters = ref<Record<string, ColumnFilter>>({})
-const sortMeta = ref<DataTableSortMeta[]>([])
+const sorting = ref<SortingState>([])
+const pagination = ref<PaginationState>({ pageIndex: 0, pageSize: 20 })
+const rowSelection = ref<Record<string, boolean>>({})
 
 const result = getContacts(undefined, false)
 const { isLoading, data } = result
@@ -60,6 +61,18 @@ const flatContacts = computed<FlatContact[]>(() =>
   }),
 )
 
+const contactColumns = computed(() => {
+  const cols: { accessorKey?: string; id?: string; header: string; enableSorting?: boolean }[] = [
+    { id: 'select', header: '' },
+    { accessorKey: 'id', header: 'ID', enableSorting: true },
+    { accessorKey: 'createdAt', header: t('contact.created-at'), enableSorting: true },
+  ]
+  for (const def of fieldDefs.value) {
+    cols.push({ accessorKey: def.name, header: def.name, enableSorting: true })
+  }
+  return cols
+})
+
 watch(
   fieldDefs,
   (defs) => {
@@ -80,9 +93,10 @@ function buildOptions(): GetContactOptions {
     filters: active.length ? active : [{ name: '*', value: '' }],
     limit: rows.value,
     offset: first.value,
-    sort: sortMeta.value
-      .filter((s) => s.order !== 0)
-      .map((s) => ({ field: s.field as 'id' | 'createdAt' | 'updatedAt', desc: s.order === -1 })),
+    sort: sorting.value.map((s) => ({
+      field: s.id as 'id' | 'createdAt' | 'updatedAt',
+      desc: s.desc,
+    })),
   }
 }
 
@@ -90,20 +104,29 @@ function fetchContacts() {
   return result.doFetch(buildOptions())
 }
 
-function onPage() {
-  fetchContacts()
-}
-
-function onSort(event: DataTableSortEvent) {
-  sortMeta.value = event.multiSortMeta ?? []
-  first.value = 0
-  fetchContacts()
-}
-
 function onFilter() {
   first.value = 0
+  pagination.value.pageIndex = 0
   fetchContacts()
 }
+
+watch(pagination, (p) => {
+  first.value = p.pageIndex * p.pageSize
+  rows.value = p.pageSize
+  fetchContacts()
+}, { deep: true })
+
+watch(sorting, () => {
+  first.value = 0
+  pagination.value.pageIndex = 0
+  fetchContacts()
+}, { deep: true })
+
+watch(rows, (v) => { pagination.value.pageSize = Number(v) })
+
+watch(rowSelection, () => {
+  selectedContacts.value = flatContacts.value.filter((c) => rowSelection.value[String(c.id)])
+}, { deep: true })
 
 function onExportCSV() {
   exportContactCSV({ fields: '*' })
@@ -158,62 +181,69 @@ onMounted(() => {
       </div>
     </template>
 
-    <DataTable
-      v-model:selection="selectedContacts"
-      v-model:filters="filters"
-      v-model:first="first"
-      v-model:rows="rows"
-      :value="flatContacts"
-      dataKey="id"
-      stripedRows
-      paginator
-      :totalRecords="nbVal"
-      :rowsPerPageOptions="[10, 20, 50, 100]"
-      :loading="isLoading"
-      lazy
-      filterDisplay="row"
-      sortMode="multiple"
-      removableSort
-      scrollable
-      scrollHeight="flex"
-      tableStyle="min-width: 50rem"
-      @page="onPage"
-      @filter="onFilter"
-      @sort="onSort"
-    >
-      <Column selectionMode="multiple" headerStyle="width: 3rem" />
-      <Column field="id" header="ID" sortable style="min-width: 6rem">
-        <template #body="{ data }"><Dicebear :size="24" :seed="data.id.toString()" /></template>
-      </Column>
-      <Column field="createdAt" :header="t('contact.created-at')" sortable style="min-width: 10rem">
-        <template #body="{ data }">
-          {{ new Date(data.createdAt).toLocaleString() }}
-        </template>
-      </Column>
-      <Column
+    <!-- Filters row -->
+    <div v-if="fieldDefs.length" class="mb-2 flex flex-wrap gap-2">
+      <UInput
         v-for="def in fieldDefs"
         :key="def.name"
-        :field="def.name"
-        :header="def.name"
-        sortable
-        :filter="true"
-        style="min-width: 8rem"
-      >
-        <template #filter="{ filterModel, filterCallback }">
-          <UInput
-            v-model="filterModel.value"
-            type="text"
-            class="w-full"
-            :placeholder="def.name"
-            @keydown.enter.prevent="filterCallback()"
-          />
-        </template>
-      </Column>
+        :model-value="filters[def.name].value ?? ''"
+        @update:model-value="(v: string) => (filters[def.name].value = v)"
+        type="text"
+        class="w-40"
+        :placeholder="def.name"
+        @keydown.enter.prevent="onFilter"
+      />
+    </div>
+
+    <UTable
+      :data="flatContacts"
+      :columns="contactColumns"
+      v-model:sorting="sorting"
+      v-model:row-selection="rowSelection"
+      manual-sorting
+      manual-pagination
+      manual-filtering
+      :loading="isLoading"
+      :get-row-id="(row: FlatContact) => String(row.id)"
+      class="min-w-[50rem]"
+    >
+      <template #select-header="{ table }">
+        <UCheckbox
+          :model-value="table.getIsAllPageRowsSelected()"
+          @update:model-value="table.toggleAllPageRowsSelected()"
+        />
+      </template>
+      <template #select-cell="{ row }">
+        <UCheckbox
+          :model-value="row.getIsSelected()"
+          @update:model-value="row.toggleSelected()"
+        />
+      </template>
+      <template #id-cell="{ row }">
+        <Dicebear :size="24" :seed="row.original.id.toString()" />
+      </template>
+      <template #createdAt-cell="{ row }">
+        {{ new Date(row.original.createdAt).toLocaleString() }}
+      </template>
       <template #empty>
         <div class="py-8 text-center text-muted">
           {{ t('is-empty') }}
         </div>
       </template>
-    </DataTable>
+    </UTable>
+
+    <div class="mt-4 flex items-center justify-between">
+      <UPagination
+        :page="pagination.pageIndex + 1"
+        :items-per-page="pagination.pageSize"
+        :total="nbVal"
+        @update:page="(p: number) => (pagination.pageIndex = p - 1)"
+      />
+      <USelect
+        v-model="rows"
+        :options="[10, 20, 50, 100]"
+        class="w-24"
+      />
+    </div>
   </MCard>
 </template>
