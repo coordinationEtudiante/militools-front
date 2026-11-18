@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import AutoComplete from 'primevue/autocomplete'
 import 'leaflet/dist/leaflet.css'
 
 import { LMap, LTileLayer, LMarker } from '@vue-leaflet/vue-leaflet'
@@ -88,6 +87,13 @@ function selectAddress(result: AddressResult) {
   })
 }
 
+function handleSelect(value: string) {
+  const result = suggestions.value.find((s) => s.display_name === value)
+  if (result) {
+    selectAddress(result)
+  }
+}
+
 async function onMarkerDrag(event: unknown) {
   const e = event as {
     target: {
@@ -131,20 +137,21 @@ async function reverseGeocode(lat: number, lng: number) {
 <template>
   <div class="flex flex-col gap-4">
     <!-- Search -->
-    <AutoComplete
+    <UInputMenu
       v-model="search"
-      :suggestions="suggestions"
-      optionLabel="display_name"
-      dropdown
-      fluid
-      @complete="searchAddress"
+      :items="suggestions"
+      value-key="display_name"
+      label-key="display_name"
+      @update:search-term="searchAddress({ query: $event })"
+      @update:model-value="handleSelect"
+      class="w-full"
     >
-      <template #option="{ option }">
+      <template #item="{ item }">
         <div class="text-sm">
-          {{ option.display_name }}
+          {{ item.display_name }}
         </div>
       </template>
-    </AutoComplete>
+    </UInputMenu>
 
     <!-- Map -->
     <div class="relative z-0 max-h-[30vh] overflow-hidden rounded-2xl border border-gray-200">

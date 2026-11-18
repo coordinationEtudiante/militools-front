@@ -1,36 +1,40 @@
 <template>
-  <AutoComplete
+  <UInputMenu
     v-if="isEnum"
     v-model="model"
-    fluid
-    :suggestions="enumSuggestions"
-    @complete="searchEnum"
-    dropdown
+    :items="enumSuggestions"
+    @update:search-term="searchEnum({ query: $event })"
     @keydown.enter="commit"
     @blur="commit"
-    :invalid="errored"
+    :color="errored ? 'error' : 'primary'"
+    class="w-full"
   />
-  <InputText
+  <UInput
     v-else-if="significance == 'other'"
     v-model="model"
-    fluid
-    :inputProps="{ autocomplete: true }"
-    :invalid="errored"
+    :color="errored ? 'error' : 'primary'"
     @keydown.enter="commit"
     @blur="commit"
+    class="w-full"
   />
-  <AutoComplete
-    v-else
-    v-model="model"
-    fluid
-    @complete="searchFieldValue"
-    @option-select="onSelect"
-    @keydown.enter="commit"
-    @blur="commit"
-    :suggestions="suggestions.map(formatSugestion)"
-    :invalid="errored"
-    v-tooltip="errored ? t('validation.explanation', { validator: validatorSource }) : false"
-  />
+  <UTooltip v-else :text="errored ? t('validation.explanation', { validator: validatorSource }) : ''">
+    <UInputMenu
+      v-model="model"
+      :items="suggestions"
+      value-key="output"
+      label-key="output"
+      @update:search-term="searchFieldValue({ query: $event })"
+      @update:model-value="handleSelect"
+      @keydown.enter="commit"
+      @blur="commit"
+      :color="errored ? 'error' : 'primary'"
+      class="w-full"
+    >
+    <template #item="{ item }">
+      <span class="text-sm">{{ formatSugestion(item) }}</span>
+    </template>
+    </UInputMenu>
+  </UTooltip>
 </template>
 
 <script setup lang="ts">
@@ -38,7 +42,6 @@ import { useAreaStore } from '@/stores/area.store'
 import { fetchResource } from '@/tools/fetch.utils'
 import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
-import { AutoComplete, InputText, type AutoCompleteOptionSelectEvent } from 'primevue'
 
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -141,16 +144,16 @@ const formatSugestion = (sugestion: {
   return `${sugestion.output} -> ${sugestion.primaryFields.map(({ name, value }) => `${name}: ${value}`).join(' ') ?? ' 🤷‍♂️ '}`
 }
 
-async function onSelect(event: AutoCompleteOptionSelectEvent) {
-  const selectedOutput = event.value.split(' -> ').at(0) ?? ''
-  emit('update:modelValue', selectedOutput)
+async function handleSelect(selectedOutput: string) {
+  const output = selectedOutput.split(' -> ').at(0) ?? selectedOutput
+  emit('update:modelValue', output)
   commit()
 
   if (significance.value === 'other') return
   //search contact with id of this search
   //search on sugestions
   const contactId = suggestions.value.find(
-    (sugestion) => sugestion.output == event.value.split(' -> ').at(0),
+    (sugestion) => sugestion.output == output,
   )?.contactId
 
   if (!contactId) return
