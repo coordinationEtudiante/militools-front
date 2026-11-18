@@ -6,7 +6,6 @@ import { useAreaStore } from '@/stores/area.store'
 import { extractEnumOptions } from '@/tools/contactValidation.utils'
 import { clearPhone } from '@/tools/phone.utils'
 import { Lock, Unlock } from '@lucide/vue'
-import { AutoComplete } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -127,6 +126,15 @@ const displayValue = computed({
   },
 })
 
+// Trigger autofill when a suggestion is selected from the menu.
+watch(displayValue, (val) => {
+  if (selecting || typeof val !== 'string') return
+  const selected = suggestions.value.find((s) => s.output === val)
+  if (selected) {
+    void handleSelect(selected)
+  }
+})
+
 const errored = computed(() => {
   if (!displayValue.value) return false
   const value = props.type == 'phone' ? clearPhone(displayValue.value) : displayValue.value
@@ -144,6 +152,7 @@ function normalizePhone() {
 }
 
 async function searchSuggestions(query: string) {
+  if (selecting) return
   if (query.length < 2) {
     suggestions.value = []
     return
@@ -156,6 +165,7 @@ async function searchSuggestions(query: string) {
 }
 
 async function searchFieldValue(event: { query: string }) {
+  if (selecting) return
   await searchSuggestions(event.query)
 }
 
@@ -213,17 +223,15 @@ async function handleSelect(selected: Suggestion) {
     <div class="flex flex-1 flex-col gap-1">
       <div class="mb-1 flex items-center gap-2">
         <span class="text-sm font-medium text-default">{{ name }}</span>
-        <i
-          v-if="sig === 'primary'"
-          class="pi pi-id-card text-xs text-muted"
-          v-tooltip="t('primary.description')"
-        />
-        <i
-          v-else-if="sig === 'recomended'"
-          class="pi pi-bolt text-xs text-muted"
-          v-tooltip="t('recomended.description')"
-        />
-        <i v-else class="pi pi-tag text-xs text-muted" v-tooltip="t('other.description')" />
+        <UTooltip v-if="sig === 'primary'" :text="t('primary.description')">
+          <i class="pi pi-id-card text-xs text-muted" />
+        </UTooltip>
+        <UTooltip v-else-if="sig === 'recomended'" :text="t('recomended.description')">
+          <i class="pi pi-bolt text-xs text-muted" />
+        </UTooltip>
+        <UTooltip v-else :text="t('other.description')">
+          <i class="pi pi-tag text-xs text-muted" />
+        </UTooltip>
       </div>
 
       <div
@@ -242,16 +250,15 @@ async function handleSelect(selected: Suggestion) {
         />
       </div>
 
-      <AutoComplete
+      <UInputMenu
         v-else-if="isEnum"
         v-model="displayValue"
-        :inputId="String(id)"
-        :suggestions="enumSuggestions"
-        @complete="searchEnum"
-        dropdown
-        :invalid="errored"
+        :items="enumSuggestions"
+        :disabled="frozen"
+        :color="errored ? 'error' : 'primary'"
         :tabindex="frozen ? -1 : undefined"
-        fluid
+        class="w-full"
+        @update:search-term="searchEnum({ query: $event })"
       />
 
       <InputPhone
@@ -274,43 +281,31 @@ async function handleSelect(selected: Suggestion) {
         fluid
       />
 
-      <AutoComplete
+      <UInputMenu
         v-else
-        v-model="inputValue"
-        :inputId="String(id)"
-        :suggestions="suggestions"
-        optionLabel="output"
-        @complete="searchFieldValue"
-        @blur="normalizePhone"
-        :invalid="errored"
-        :input-props="inputAttrs"
+        v-model="displayValue"
+        :items="suggestions"
+        value-key="output"
+        label-key="output"
+        :color="errored ? 'error' : 'primary'"
+        v-bind="inputAttrs"
         :tabindex="frozen ? -1 : undefined"
-        fluid
+        class="w-full"
+        @update:search-term="searchFieldValue({ query: $event })"
+        @blur="normalizePhone"
       >
-        <template #option="slotProps">
+        <template #item="{ item }">
           <div class="flex flex-col gap-1 text-sm">
-            <span class="font-medium">{{ slotProps.option.output }}</span>
-            <span
-              v-if="sig !== 'primary' && slotProps.option.primaryFields?.length"
-              class="text-xs text-muted"
-            >
-              {{
-                slotProps.option.primaryFields
-                  .map((p: { name: string; value: string }) => `${p.name}: ${p.value}`)
-                  .join(' · ')
-              }}
+            <span class="font-medium">{{ item.output }}</span>
+            <span v-if="sig !== 'primary' && item.primaryFields?.length" class="text-xs text-muted">
+              {{ item.primaryFields.map((p: { name: string; value: string }) => `${p.name}: ${p.value}`).join(' · ') }}
             </span>
-            <span
-              v-else-if="sig === 'primary' && primaryDetail(slotProps.option)"
-              class="text-xs text-muted"
-            >
-              {{
-                `${primaryDetail(slotProps.option)!.name}: ${primaryDetail(slotProps.option)!.value}`
-              }}
+            <span v-else-if="sig === 'primary' && primaryDetail(item)" class="text-xs text-muted">
+              {{ `${primaryDetail(item)!.name}: ${primaryDetail(item)!.value}` }}
             </span>
           </div>
         </template>
-      </AutoComplete>
+      </UInputMenu>
 
       <UAlert v-if="errored" color="error" size="xs">
         {{ t('validation.error') }}
@@ -318,11 +313,9 @@ async function handleSelect(selected: Suggestion) {
     </div>
 
     <div v-if="description || showLock" class="mt-2 flex items-center gap-1">
-      <i
-        v-if="description"
-        class="pi pi-question-circle cursor-help text-muted"
-        v-tooltip="description"
-      />
+      <UTooltip v-if="description" :text="description">
+        <i class="pi pi-question-circle cursor-help text-muted" />
+      </UTooltip>
       <button
         v-if="showLock"
         type="button"
