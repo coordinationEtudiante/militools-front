@@ -16,33 +16,25 @@
     <div>
       {{ t('create-recap', { nbCreate: successList.length, nbError }) }}
     </div>
-    <DataTable
-      v-if="errorValue.length > 0"
-      :value="errorValue"
-      ref="dt"
-      :sortField="'message'"
-      :sortOrder="1"
-      tableStyle="min-width: 50rem"
-    >
-      <template #header>
-        <div class="pb-4 text-end">
-          <UButton
-            color="neutral"
-            variant="solid"
-            label="Export"
-            @click="exportCSV()"
-          />
-        </div>
-      </template>
-      <Column field="message" :header="t('reason')" :exportHeader="t('reason')" sortable />
-      <Column
-        v-for="field in errorColumns"
-        :key="field"
-        :field="field"
-        :header="field"
-        :exportHeader="field"
-      />
-    </DataTable>
+    <div v-if="errorValue.length > 0" class="flex flex-col gap-2">
+      <div class="text-end">
+        <UButton
+          color="neutral"
+          variant="solid"
+          label="Export"
+          @click="exportCSV()"
+        />
+      </div>
+      <UTable
+        :data="errorValue"
+        :columns="recapColumns"
+        class="min-w-[50rem]"
+      >
+        <template #message-cell="{ row }">
+          {{ row.original.message }}
+        </template>
+      </UTable>
+    </div>
     <div v-else>
       {{ t('no-error') }}
     </div>
@@ -56,7 +48,6 @@ import { DataStorage } from '@/stores/contact/creates/dataStorage'
 import { usePermStore } from '@/stores/perm.store'
 import { FieldsToIds } from '@/tools/area.utils'
 import { fetchResource } from '@/tools/fetch.utils'
-import { Column, DataTable } from 'primevue'
 import { useToast } from '@nuxt/ui/composables/useToast'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,7 +69,6 @@ getPerms([
 const error = ref<boolean | null>(null)
 const errorMessage = ref<string>()
 const successList = ref<number[]>([])
-const dt = ref()
 const errorList = ref<
   {
     index: number
@@ -109,6 +99,11 @@ const errorColumns = computed(() => {
     .filter((name) => keys.has(name))
     .concat([...keys].filter((key) => !area.fields.some((f) => f.name === key)))
 })
+
+const recapColumns = computed(() => [
+  { accessorKey: 'message', header: t('reason') },
+  ...errorColumns.value.map((field) => ({ accessorKey: field, header: field })),
+])
 
 const nbError = computed(() => errorList.value.length + editErrorList.value.length)
 
@@ -211,6 +206,18 @@ onMounted(async () => {
 })
 
 const exportCSV = () => {
-  dt.value.exportCSV()
+  const cols = ['message', ...errorColumns.value]
+  const header = cols.join(',')
+  const rows = errorValue.value.map((row) =>
+    cols.map((c) => `"${String(row[c] ?? '').replace(/"/g, '""')}"`).join(','),
+  )
+  const csv = [header, ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'errors.csv'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 </script>
