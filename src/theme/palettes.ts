@@ -1,6 +1,4 @@
 import { computed, ref } from 'vue'
-import { definePreset, usePreset } from '@primeuix/themes'
-import Aura from '@primeuix/themes/aura'
 
 export type Ramp = Record<string, string>
 
@@ -204,28 +202,6 @@ export const currentPalette = computed({
   set: (key) => applyPalette(key as PaletteKey),
 })
 
-export function buildPreset(key: PaletteKey) {
-  const palette = palettes[key]
-  if (!palette) return Aura
-
-  const { primary, light, dark, accents } = palette
-  const shades = new Set([...Object.keys(light), ...Object.keys(dark)])
-
-  return definePreset(Aura, {
-    semantic: {
-      primary,
-      ...accents,
-      // PrimeVue 5 : une seule rampe `surface`, chaque nuance est un light-dark(clair, sombre)
-      surface: Object.fromEntries(
-        [...shades].map((shade) => [
-          shade,
-          `light-dark(${light[shade]}, ${dark[shade]})`,
-        ]),
-      ),
-    },
-  })
-}
-
 export function applyUiColors(key: PaletteKey) {
   const palette = palettes[key]
   if (!palette) return
@@ -248,8 +224,6 @@ export function initPalette() {
 
 export function applyPalette(key: PaletteKey) {
   if (!palettes[key]) return
-
-  usePreset(buildPreset(key))
 
   current.value = key
   document.documentElement.dataset.palette = key

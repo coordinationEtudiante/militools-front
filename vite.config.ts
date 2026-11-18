@@ -11,12 +11,6 @@ export default defineConfig({
   plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }), vue(), vueDevTools(), ui({
     autoImport: false,
     colorMode: false,
-    ui: {
-      colors: {
-        primary: 'emerald',
-        neutral: 'slate',
-      }
-    },
     icon: {
       clientBundle: { scan: true }
     }

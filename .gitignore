@@ -43,3 +43,5 @@ __screenshots__/
 # Nuxt UI
 auto-imports.d.ts
 components.d.ts
+# Artefacts accidentels
+ij154-linux64-java8.zip

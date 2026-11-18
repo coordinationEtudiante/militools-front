@@ -1,8 +1,4 @@
 import { createPinia } from 'pinia'
-import { Tooltip } from 'primevue'
-import PrimeVue from 'primevue/config'
-import Mask from 'primevue/mask'
-import ToastService from 'primevue/toastservice'
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import enMessages from '../locales/en.json'
@@ -10,7 +6,7 @@ import frMessages from '../locales/fr.json'
 import App from './App.vue'
 import './index.css'
 import { router } from './router'
-import { buildPreset, storedPalette, initPalette } from './theme/palettes'
+import { initPalette } from './theme/palettes'
 import './theme/useTheme'
 import ui from '@nuxt/ui/vue-plugin'
 
@@ -33,24 +29,11 @@ const i18n = createI18n({
 
 const app = createApp(App)
 
-app.use(PrimeVue, {
-  theme: {
-    preset: buildPreset(storedPalette()),
-    options: {
-      darkModeSelector: '.dark',
-    },
-  },
-  license: import.meta.env.VITE_PRIMEUI_LICENSE_KEY,
-})
-
 initPalette()
 
-app.directive('mask', Mask)
-app.directive('tooltip', Tooltip)
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
-app.use(ToastService)
 app.use(ui)
 
 app.mount('#app')
