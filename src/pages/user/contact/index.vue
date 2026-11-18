@@ -110,19 +110,10 @@ function onFilter() {
   fetchContacts()
 }
 
-watch(pagination, (p) => {
-  first.value = p.pageIndex * p.pageSize
-  rows.value = p.pageSize
-  fetchContacts()
-}, { deep: true })
-
 watch(sorting, () => {
   first.value = 0
   pagination.value.pageIndex = 0
-  fetchContacts()
 }, { deep: true })
-
-watch(rows, (v) => { pagination.value.pageSize = Number(v) })
 
 watch(rowSelection, () => {
   selectedContacts.value = flatContacts.value.filter((c) => rowSelection.value[String(c.id)])
@@ -237,12 +228,13 @@ onMounted(() => {
         :page="pagination.pageIndex + 1"
         :items-per-page="pagination.pageSize"
         :total="nbVal"
-        @update:page="(p: number) => (pagination.pageIndex = p - 1)"
+        @update:page="(p: number) => { pagination.pageIndex = p - 1; first = pagination.pageIndex * pagination.pageSize; rows = pagination.pageSize; fetchContacts() }"
       />
       <USelect
         v-model="rows"
         :options="[10, 20, 50, 100]"
         class="w-24"
+        @update:model-value="(v: any) => { rows = Number(v); pagination.pageSize = Number(v); pagination.pageIndex = 0; first = 0; fetchContacts() }"
       />
     </div>
   </MCard>
