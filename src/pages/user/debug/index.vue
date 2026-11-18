@@ -20,19 +20,6 @@ import {
   type StoreInspection,
 } from '@/tools/debug.utils'
 import { Bug, Database, Play, RefreshCw, RotateCw, ShieldCheck } from '@lucide/vue'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionHeader,
-  AccordionPanel,
-  Column,
-  DataTable,
-  Tab,
-  TabList,
-  TabPanel,
-  TabPanels,
-  Tabs,
-} from 'primevue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -228,6 +215,65 @@ function buildStores(): StoreCard[] {
 
 const stores = computed(() => buildStores())
 
+// Items for the UAccordion: one entry per store card.
+const accordionItems = computed(() =>
+  stores.value.map((card) => ({
+    label: card.entry ? t(card.entry.label) : card.store.$id,
+    value: card.store.$id,
+    storeId: card.store.$id,
+    fromCatalog: card.fromCatalog,
+    entry: card.entry,
+    store: card.store,
+    inspection: card.inspection,
+  })),
+)
+
+// Tabs for one store card (state / getters / actions).
+const actionColumns = [
+  { accessorKey: 'key', header: t('debug.column.key') },
+  { accessorKey: 'signature', header: t('debug.column.signature') },
+  { id: 'run', header: t('debug.action.run') },
+]
+
+const resultColumns = [
+  { accessorKey: 'storeLabel', header: t('debug.column.store') },
+  { accessorKey: 'unitLabel', header: t('debug.column.unit') },
+  { accessorKey: 'status', header: t('debug.column.status') },
+  { id: 'message', header: 'Message' },
+]
+
+const routeColumns = [
+  { accessorKey: 'routes', header: 'Route' },
+  { accessorKey: 'path', header: 'Path' },
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'method', header: t('debug.permissions.method') },
+  { accessorKey: 'level', header: t('debug.permissions.level') },
+  { id: 'authorized', header: t('debug.permissions.authorized') },
+]
+
+function storeTabs(card: (typeof stores.value)[number]) {
+  return [
+    {
+      label: `${t('debug.tab.state')} (${card.inspection.state.length})`,
+      value: card.store.$id + '-state',
+      rows: card.inspection.state,
+      kind: 'table' as const,
+    },
+    {
+      label: `${t('debug.tab.getters')} (${card.inspection.getters.length})`,
+      value: card.store.$id + '-getters',
+      rows: card.inspection.getters,
+      kind: 'table' as const,
+    },
+    {
+      label: `${t('debug.tab.actions')} (${card.inspection.actions.length})`,
+      value: card.store.$id + '-actions',
+      actions: card.inspection.actions,
+      kind: 'actions' as const,
+    },
+  ]
+}
+
 // All stores open by default
 const openPanels = computed(() => stores.value.map((card) => card.store.$id))
 
@@ -314,39 +360,29 @@ async function runAction(store: DebugStore, actionKey: string) {
         </div>
 
         <!-- Reload history (status + possible error message) -->
-        <DataTable
+        <UTable
           v-if="results.length"
-          :value="results"
-          size="small"
-          striped-rows
-          scrollable
-          scroll-height="18rem"
+          :data="results"
+          :columns="resultColumns"
+          class="max-h-72 overflow-auto"
         >
-          <Column field="storeLabel" :header="t('debug.column.store')" class="w-40">
-            <template #body="{ data }">
-              <span class="text-xs">{{ data.storeLabel }}</span>
-            </template>
-          </Column>
-          <Column field="unitLabel" :header="t('debug.column.unit')">
-            <template #body="{ data }">
-              <code class="text-xs">{{ t(data.unitLabel) }}</code>
-            </template>
-          </Column>
-          <Column field="status" :header="t('debug.column.status')" class="w-32">
-            <template #body="{ data }">
-              <UBadge :color="statusColor(data.status)" variant="soft" size="xs" rounded>
-                {{ statusLabel(data.status) }}
-              </UBadge>
-            </template>
-          </Column>
-          <Column :header="'Message'">
-            <template #body="{ data }">
-              <span v-if="data.message" class="text-xs break-all text-error">{{
-                data.message
-              }}</span>
-            </template>
-          </Column>
-        </DataTable>
+          <template #storeLabel-cell="{ row }">
+            <span class="text-xs">{{ row.original.storeLabel }}</span>
+          </template>
+          <template #unitLabel-cell="{ row }">
+            <code class="text-xs">{{ t(row.original.unitLabel) }}</code>
+          </template>
+          <template #status-cell="{ row }">
+            <UBadge :color="statusColor(row.original.status)" variant="soft" size="xs" rounded>
+              {{ statusLabel(row.original.status) }}
+            </UBadge>
+          </template>
+          <template #message-cell="{ row }">
+            <span v-if="row.original.message" class="text-xs break-all text-error">{{
+              row.original.message
+            }}</span>
+          </template>
+        </UTable>
       </div>
     </UCard>
 
@@ -389,58 +425,43 @@ async function runAction(store: DebugStore, actionKey: string) {
         <UAlert v-else-if="!permStore.hasSession" color="info">
           {{ t('debug.routes.empty') }}
         </UAlert>
-        <DataTable
+        <UTable
           v-else
-          :value="permStore.routes"
-          size="small"
-          striped-rows
-          scrollable
-          scroll-height="22rem"
+          :data="permStore.routes"
+          :columns="routeColumns"
+          class="max-h-88 overflow-auto"
         >
-          <Column field="routes" :header="'Route'" class="w-64">
-            <template #body="{ data }">
-              <code class="text-xs">{{ data.routes }}</code>
-            </template>
-          </Column>
-          <Column field="path" :header="'Path'" class="w-56">
-            <template #body="{ data }">
-              <code class="text-xs text-muted">{{ data.path }}</code>
-            </template>
-          </Column>
-          <Column field="name" :header="'Name'" class="w-56">
-            <template #body="{ data }">
-              <span class="text-xs">{{ data.name || data.descDefault }}</span>
-            </template>
-          </Column>
-          <Column field="method" :header="t('debug.permissions.method')" class="w-24">
-            <template #body="{ data }">
-              <code class="text-xs">{{ data.method }}</code>
-            </template>
-          </Column>
-          <Column field="level" :header="t('debug.permissions.level')" class="w-32">
-            <template #body="{ data }">
-              <UBadge v-if="data.level" color="warning" variant="soft" size="xs" rounded>{{ data.level }}</UBadge>
-              <span v-else class="text-xs text-muted">—</span>
-            </template>
-          </Column>
-          <!-- "Authorized" column: cross-checked with the store authorizedRoutes -->
-          <Column :header="t('debug.permissions.authorized')" class="w-40">
-            <template #body="{ data }">
-              <UBadge
-                v-if="permStore.authorizedRoutes.some((a) => a.id === data.id)"
-                color="success"
-                variant="soft"
-                size="xs"
-                rounded
-              >
-                {{
-                  permStore.authorizedRoutes.find((a) => a.id === data.id)?.routePermLevels ?? '✓'
-                }}
-              </UBadge>
-              <UBadge v-else color="neutral" variant="soft" size="xs" rounded> ✗ </UBadge>
-            </template>
-          </Column>
-        </DataTable>
+          <template #routes-cell="{ row }">
+            <code class="text-xs">{{ row.original.routes }}</code>
+          </template>
+          <template #path-cell="{ row }">
+            <code class="text-xs text-muted">{{ row.original.path }}</code>
+          </template>
+          <template #name-cell="{ row }">
+            <span class="text-xs">{{ row.original.name || row.original.descDefault }}</span>
+          </template>
+          <template #method-cell="{ row }">
+            <code class="text-xs">{{ row.original.method }}</code>
+          </template>
+          <template #level-cell="{ row }">
+            <UBadge v-if="row.original.level" color="warning" variant="soft" size="xs" rounded>{{ row.original.level }}</UBadge>
+            <span v-else class="text-xs text-muted">—</span>
+          </template>
+          <template #authorized-cell="{ row }">
+            <UBadge
+              v-if="permStore.authorizedRoutes.some((a) => a.id === row.original.id)"
+              color="success"
+              variant="soft"
+              size="xs"
+              rounded
+            >
+              {{
+                permStore.authorizedRoutes.find((a) => a.id === row.original.id)?.routePermLevels ?? '✓'
+              }}
+            </UBadge>
+            <UBadge v-else color="neutral" variant="soft" size="xs" rounded> ✗ </UBadge>
+          </template>
+        </UTable>
       </div>
     </UCard>
 
@@ -456,94 +477,66 @@ async function runAction(store: DebugStore, actionKey: string) {
       <p class="mb-3 text-xs text-muted">{{ t('debug.stores.subtitle') }}</p>
 
       <!-- One accordion per store: state, getters and actions in tabs -->
-      <Accordion multiple :value="openPanels">
-        <AccordionPanel v-for="card in stores" :key="card.store.$id" :value="card.store.$id">
-          <AccordionHeader as="div">
-            <!-- Header: name, id, "extra" badge and the reload button -->
-            <div class="flex w-full items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="font-medium">{{
-                  card.entry ? t(card.entry.label) : card.store.$id
-                }}</span>
-                <UBadge color="neutral" variant="soft" size="xs" class="px-2">{{ card.store.$id }}</UBadge>
-                <UBadge v-if="!card.fromCatalog" color="warning" variant="soft" size="xs" rounded>
-                  {{ t('debug.extra-stores') }}
-                </UBadge>
-              </div>
-              <UButton
-                v-if="card.entry?.reloads.length"
-                color="neutral"
-                variant="outline"
-                size="xs"
-                :disabled="reloadingAll"
-                @click.stop="runStore(card.entry!)"
-              >
-                <RefreshCw :size="14" class="mr-1" />
-                {{ t('debug.action.reload') }}
-              </UButton>
+      <UAccordion multiple :default-value="openPanels" :items="accordionItems">
+        <template #default="{ item }">
+          <div class="flex w-full items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="font-medium">{{ item.label }}</span>
+              <UBadge color="neutral" variant="soft" size="xs" class="px-2">{{ item.storeId }}</UBadge>
+              <UBadge v-if="!item.fromCatalog" color="warning" variant="soft" size="xs" rounded>
+                {{ t('debug.extra-stores') }}
+              </UBadge>
             </div>
-          </AccordionHeader>
-
-          <AccordionContent>
-            <div class="flex flex-col gap-3 py-2">
-              <Tabs :value="card.store.$id + '-state'">
-                <TabList>
-                  <!-- Tabs: variable count displayed for each category -->
-                  <Tab :value="card.store.$id + '-state'">
-                    {{ t('debug.tab.state') }} ({{ card.inspection.state.length }})
-                  </Tab>
-                  <Tab :value="card.store.$id + '-getters'">
-                    {{ t('debug.tab.getters') }} ({{ card.inspection.getters.length }})
-                  </Tab>
-                  <Tab :value="card.store.$id + '-actions'">
-                    {{ t('debug.tab.actions') }} ({{ card.inspection.actions.length }})
-                  </Tab>
-                </TabList>
-                <TabPanels>
-                  <!-- State and getters => key/value display (secrets masked) -->
-                  <TabPanel :value="card.store.$id + '-state'">
-                    <VariableTable :rows="card.inspection.state" />
-                  </TabPanel>
-                  <TabPanel :value="card.store.$id + '-getters'">
-                    <VariableTable :rows="card.inspection.getters" />
-                  </TabPanel>
-                  <!-- Actions => list + run button (for reload actions) -->
-                  <TabPanel :value="card.store.$id + '-actions'">
-                    <DataTable :value="card.inspection.actions" size="small" striped-rows>
-                      <Column field="key" :header="t('debug.column.key')" class="w-56">
-                        <template #body="{ data }">
-                          <code class="text-xs font-medium">{{ data.key }}</code>
-                        </template>
-                      </Column>
-                      <Column :header="t('debug.column.signature')">
-                        <template #body="{ data }">
-                          <code class="text-xs text-muted">{{ data.signature }}</code>
-                        </template>
-                      </Column>
-                      <Column :header="t('debug.action.run')" class="w-32">
-                        <template #body="{ data }">
-                          <UButton
-                            size="xs"
-                            :disabled="!isRunnable(card.store, data.key)"
-                            :loading="runningActionKey === card.store.$id + '::' + data.key"
-                            @click="runAction(card.store, data.key)"
-                          >
-                            <Play :size="14" class="mr-1" />
-                            {{ t('debug.action.run') }}
-                          </UButton>
-                        </template>
-                      </Column>
-                    </DataTable>
-                    <p v-if="!card.inspection.actions.length" class="text-xs text-muted">
-                      {{ t('debug.empty') }}
-                    </p>
-                  </TabPanel>
-                </TabPanels>
-              </Tabs>
-            </div>
-          </AccordionContent>
-        </AccordionPanel>
-      </Accordion>
+            <UButton
+              v-if="item.entry?.reloads.length"
+              color="neutral"
+              variant="outline"
+              size="xs"
+              :disabled="reloadingAll"
+              @click.stop="runStore(item.entry!)"
+            >
+              <RefreshCw :size="14" class="mr-1" />
+              {{ t('debug.action.reload') }}
+            </UButton>
+          </div>
+        </template>
+        <template #content="{ item }">
+          <div class="flex flex-col gap-3 py-2">
+            <UTabs :default-value="item.storeId + '-state'" :items="storeTabs(item)">
+              <template #content="{ item: tab }">
+                <VariableTable v-if="tab.kind === 'table'" :rows="tab.rows" />
+                <template v-else>
+                  <UTable
+                    :data="tab.actions"
+                    :columns="actionColumns"
+                  >
+                    <template #key-cell="{ row }">
+                      <code class="text-xs font-medium">{{ row.original.key }}</code>
+                    </template>
+                    <template #signature-cell="{ row }">
+                      <code class="text-xs text-muted">{{ row.original.signature }}</code>
+                    </template>
+                    <template #run-cell="{ row }">
+                      <UButton
+                        size="xs"
+                        :disabled="!isRunnable(item.store, row.original.key)"
+                        :loading="runningActionKey === item.storeId + '::' + row.original.key"
+                        @click="runAction(item.store, row.original.key)"
+                      >
+                        <Play :size="14" class="mr-1" />
+                        {{ t('debug.action.run') }}
+                      </UButton>
+                    </template>
+                  </UTable>
+                  <p v-if="!tab.actions.length" class="text-xs text-muted">
+                    {{ t('debug.empty') }}
+                  </p>
+                </template>
+              </template>
+            </UTabs>
+          </div>
+        </template>
+      </UAccordion>
     </UCard>
   </div>
 </template>

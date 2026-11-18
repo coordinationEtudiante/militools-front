@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Column, DataTable, Message } from 'primevue'
 import { useI18n } from 'vue-i18n'
 import { serializeValue } from '@/tools/debug.utils'
 
@@ -21,20 +20,20 @@ function isSensitive(key: string) {
 
 <template>
   <!-- No variable: neutral message instead of an empty table -->
-  <Message v-if="rows.length === 0" severity="secondary" :sticky="true" class="w-full">
+  <UAlert v-if="rows.length === 0" color="neutral" variant="soft" class="w-full">
     {{ emptyMessage ?? t('debug.empty') }}
-  </Message>
+  </UAlert>
   <DataTable v-else :value="rows" size="small" striped-rows scrollable scroll-height="26rem">
     <Column field="key" :header="t('debug.column.key')" class="w-56">
       <template #body="{ data }">
-        <code class="text-xs font-medium text-gray-800">{{ data.key }}</code>
+        <code class="text-xs font-medium text-default">{{ data.key }}</code>
       </template>
     </Column>
     <Column field="value" :header="t('debug.column.value')">
       <template #body="{ data }">
         <!-- Value serialized as JSON (bounded); secrets are masked -->
         <pre
-          class="m-0 max-h-40 overflow-auto rounded-md bg-gray-50 p-2 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-gray-800"
+          class="m-0 max-h-40 overflow-auto rounded-md bg-muted p-2 font-mono text-[11px] leading-relaxed break-all whitespace-pre-wrap text-default"
           >{{ isSensitive(data.key) ? '••••••••' : serializeValue(data.value) }}</pre
         >
       </template>
